@@ -39,7 +39,7 @@ CPPFLAGS = -g -Wall -Werror -I$(C150IDSRPC) -I$(C150LIB)
 LDFLAGS = 
 INCLUDES = $(C150LIB)c150streamsocket.h $(C150LIB)c150network.h $(C150LIB)c150exceptions.h $(C150LIB)c150debug.h $(C150LIB)c150utility.h $(C150LIB)c150grading.h $(C150IDSRPC)IDLToken.h $(C150IDSRPC)tokenizeddeclarations.h  $(C150IDSRPC)tokenizeddeclaration.h $(C150IDSRPC)declarations.h $(C150IDSRPC)declaration.h $(C150IDSRPC)functiondeclaration.h $(C150IDSRPC)typedeclaration.h $(C150IDSRPC)arg_or_member_declaration.h rpcproxyhelper.h rpcstubhelper.h simplefunction.idl arithmetic.idl floatarithmetic.idl 
 
-all: pingstreamclient pingstreamserver idldeclarationtst simplefunctionclient simplefunctionserver idl_to_json
+all: arithmeticserver pingstreamclient pingstreamserver idldeclarationtst simplefunctionclient simplefunctionserver idl_to_json
 
 ########################################################################
 #
@@ -78,6 +78,19 @@ simplefunctionclient: simplefunctionclient.o rpcproxyhelper.o simplefunction.pro
 # simplefunction.stub.o)
 simplefunctionserver: simplefunction.stub.o rpcserver.o rpcstubhelper.o simplefunction.o  $(C150AR) $(C150IDSRPCAR)  $(INCLUDES)
 	$(CPP) -o simplefunctionserver rpcserver.o simplefunction.stub.o simplefunction.o rpcstubhelper.o $(C150AR) $(C150IDSRPCAR) 
+
+
+arithmeticclient: arithmeticclient.o rpcproxyhelper.o arithmetic.proxy.o  $(C150AR) $(C150IDSRPCAR)  $(INCLUDES)
+	$(CPP) -o arithmeticclient arithmeticclient.o rpcproxyhelper.o arithmetic.proxy.o  $(C150AR) $(C150IDSRPCAR) 
+
+# The following is NOT a mistake. The main program for any of the rpc servers
+# is rpcserver.o.  This way, we can make a different one for each set 
+# of functions, by linking the right specific stugs (in this case
+# simplefunction.stub.o)
+arithmeticserver: arithmetic.stub.o rpcserver.o rpcstubhelper.o arithmetic.o  $(C150AR) $(C150IDSRPCAR)  $(INCLUDES)
+	$(CPP) -o arithmeticserver rpcserver.o arithmetic.stub.o arithmetic.o rpcstubhelper.o $(C150AR) $(C150IDSRPCAR) 
+
+
 
 
 ########################################################################
@@ -169,6 +182,6 @@ idl_to_json: idl_to_json.o $(C150AR) $(C150IDSRPCAR)  $(INCLUDES)
 
 # clean up everything we build dynamically (probably missing .cpps from .idl)
 clean:
-	 rm -f pingstreamclient pingstreamserver idldeclarationtst idl_to_json simplefunctionclient simplefunctionserver *.o *.json *.pyc
+	 rm -f arithmeticclient arithmeticserver pingstreamclient pingstreamserver idldeclarationtst idl_to_json simplefunctionclient simplefunctionserver *.o *.json *.pyc
 
 
