@@ -53,7 +53,7 @@ int add(int x, int y) {
   //
   c150debug->printf(C150RPCDEBUG,"arithmetic.proxy.cpp: add() invocation sent, waiting for response");
   uint32_t net_result;
-  RPCPROXYSOCKET->read((char*) &result, sizeof(uint32_t));
+  RPCPROXYSOCKET->read((char*) &net_result, sizeof(uint32_t));
   uint32_t host_result = ntohl(net_result);
   c150debug->printf(C150RPCDEBUG,"arithmetic.proxy.cpp: add() successful return from remote call");
 
@@ -78,7 +78,7 @@ int subtract(int x, int y) {
   //
   c150debug->printf(C150RPCDEBUG,"arithmetic.proxy.cpp: subtract() invocation sent, waiting for response");
   uint32_t net_result;
-  RPCPROXYSOCKET->read((char*) &result, sizeof(uint32_t));
+  RPCPROXYSOCKET->read((char*) &net_result, sizeof(uint32_t));
   uint32_t host_result = ntohl(net_result);
   c150debug->printf(C150RPCDEBUG,"arithmetic.proxy.cpp: subtract() successful return from remote call");
 
@@ -102,7 +102,7 @@ int multiply(int x, int y) {
   //
   c150debug->printf(C150RPCDEBUG,"arithmetic.proxy.cpp: multiply() invocation sent, waiting for response");
   uint32_t net_result;
-  RPCPROXYSOCKET->read((char*) &result, sizeof(uint32_t));
+  RPCPROXYSOCKET->read((char*) &net_result, sizeof(uint32_t));
   uint32_t host_result = ntohl(net_result);
   c150debug->printf(C150RPCDEBUG,"arithmetic.proxy.cpp: multiply() successful return from remote call");
 
@@ -126,7 +126,7 @@ int divide(int x, int y){
   //
   c150debug->printf(C150RPCDEBUG,"arithmetic.proxy.cpp: divide() invocation sent, waiting for response");
   uint32_t net_result;
-  RPCPROXYSOCKET->read((char*) &result, sizeof(uint32_t));
+  RPCPROXYSOCKET->read((char*) &net_result, sizeof(uint32_t));
   uint32_t host_result = ntohl(net_result);
   c150debug->printf(C150RPCDEBUG,"arithmetic.proxy.cpp: divide() successful return from remote call");
 
