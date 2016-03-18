@@ -91,15 +91,15 @@ arithmeticserver: arithmetic.stub.o rpcserver.o rpcstubhelper.o atomicSocketUtil
 	$(CPP) -o arithmeticserver rpcserver.o arithmetic.stub.o atomicSocketUtils.o arithmetic.o rpcstubhelper.o $(C150AR) $(C150IDSRPCAR) 
 
 
-floatarithmeticclient: floatarithmeticclient.o rpcproxyhelper.o floatarithmetic.proxy.o  $(C150AR) $(C150IDSRPCAR)  $(INCLUDES)
-	$(CPP) -o floatarithmeticclient floatarithmeticclient.o rpcproxyhelper.o floatarithmetic.proxy.o  $(C150AR) $(C150IDSRPCAR) 
+floatarithmeticclient: floatarithmeticclient.o rpcproxyhelper.o atomicSocketUtils.o floatarithmetic.proxy.o  $(C150AR) $(C150IDSRPCAR)  $(INCLUDES)
+	$(CPP) -o floatarithmeticclient floatarithmeticclient.o rpcproxyhelper.o atomicSocketUtils.o floatarithmetic.proxy.o  $(C150AR) $(C150IDSRPCAR) 
 
 # The following is NOT a mistake. The main program for any of the rpc servers
 # is rpcserver.o.  This way, we can make a different one for each set 
 # of functions, by linking the right specific stugs (in this case
 # simplefunction.stub.o)
-floatarithmeticserver: floatarithmetic.stub.o rpcserver.o rpcstubhelper.o floatarithmetic.o  $(C150AR) $(C150IDSRPCAR)  $(INCLUDES)
-	$(CPP) -o floatarithmeticserver rpcserver.o floatarithmetic.stub.o floatarithmetic.o rpcstubhelper.o $(C150AR) $(C150IDSRPCAR) 
+floatarithmeticserver: floatarithmetic.stub.o rpcserver.o rpcstubhelper.o atomicSocketUtils.o floatarithmetic.o  $(C150AR) $(C150IDSRPCAR)  $(INCLUDES)
+	$(CPP) -o floatarithmeticserver rpcserver.o floatarithmetic.stub.o atomicSocketUtils.o floatarithmetic.o rpcstubhelper.o $(C150AR) $(C150IDSRPCAR) 
 
 
 ########################################################################

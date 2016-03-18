@@ -40,8 +40,8 @@
 // CODE HERE ACTUALLY MATCHES THE REMOTED INTERFACE
 
 #include "floatarithmetic.idl"
-
 #include "rpcstubhelper.h"
+#include "atomicSocketUtils.h"
 
 #include <cstdio>
 #include <cstring>
@@ -82,9 +82,7 @@ float __add(float x, float y) {
   //
   c150debug->printf(C150RPCDEBUG,"floatarithmetic.stub.cpp: returned from  add() -- responding to client");
   float result = add(x, y);
-  char char_result[16];
-  sprintf(char_result, "%f", result);
-  RPCSTUBSOCKET->write(char_result, 16);
+  sendFloatType(RPCSTUBSOCKET, result);
   return result;
 }
 
@@ -103,9 +101,7 @@ float __subtract(float x, float y) {
   //
   c150debug->printf(C150RPCDEBUG,"floatarithmetic.stub.cpp: returned from  subtract() -- responding to client");
   float result = subtract(x, y);
-  char char_result[16];
-  sprintf(char_result, "%f", result);
-  RPCSTUBSOCKET->write(char_result, 16);
+  sendFloatType(RPCSTUBSOCKET, result);
   return result;
 }
 
@@ -126,9 +122,7 @@ float __multiply(float x, float y) {
   //
   c150debug->printf(C150RPCDEBUG,"floatarithmetic.stub.cpp: returned from  multiply() -- responding to client");
   float result = multiply(x, y);
-  char char_result[16];
-  sprintf(char_result, "%f", result);
-  RPCSTUBSOCKET->write(char_result, 16);
+  sendFloatType(RPCSTUBSOCKET, result);
   return result;
 }
 
@@ -150,9 +144,7 @@ float __divide(float x, float y) {
   //
   c150debug->printf(C150RPCDEBUG,"floatarithmetic.stub.cpp: returned from  divide() -- responding to client");
   float result = divide(x, y);
-  char char_result[16];
-  sprintf(char_result, "%f", result);
-  RPCSTUBSOCKET->write(char_result, 16);
+  sendFloatType(RPCSTUBSOCKET, result);
   return result;
 }
 
@@ -197,129 +189,34 @@ void dispatchFunction() {
 
 
   char functionNameBuffer[50];
-
-  //
-  // Read the function name from the stream -- note
-  // REPLACE THIS WITH YOUR OWN LOGIC DEPENDING ON THE 
-  // WIRE FORMAT YOU USE
-  //
-  getFunctionNameFromStream(functionNameBuffer,sizeof(functionNameBuffer));
-
-  //
-  // We've read the function name, call the stub for the right one
-  // The stub will invoke the function and send response.
-  //
-
+  string functionName = readFunctionName(RPCSTUBSOCKET, functionNameBuffer, sizeof(functionNameBuffer));
+  
   if (!RPCSTUBSOCKET-> eof()) {
-    if (strcmp(functionNameBuffer, "add") == 0) {
+    //string functionName = readFunctionName(RPCSTUBSOCKET, functionNameBuffer);
+    if (strcmp(functionName.c_str(), "add") == 0) {
+      float host_float_x = readFloatType(RPCSTUBSOCKET);
+      float host_float_y = readFloatType(RPCSTUBSOCKET);
 
-      char float_x[16];
-      RPCSTUBSOCKET->read(float_x, 16);
-      float f_x = atof(float_x);
-      
-      char float_y[16];
-      RPCSTUBSOCKET->read(float_y, 16);
-      float f_y = atof(float_y);
+      __add(host_float_x, host_float_y);
+    } else if (strcmp(functionName.c_str(), "subtract") == 0) {
+      float host_float_x = readFloatType(RPCSTUBSOCKET);
+      float host_float_y = readFloatType(RPCSTUBSOCKET);
 
-      __add(f_x, f_y);
-    } else if (strcmp(functionNameBuffer, "subtract") == 0) {
-      char float_x[16];
-      RPCSTUBSOCKET->read(float_x, 16);
-      float f_x = atof(float_x);
-      
-      char float_y[16];
-      RPCSTUBSOCKET->read(float_y, 16);
-      float f_y = atof(float_y);
+      __subtract(host_float_x, host_float_y);
+    } else if (strcmp(functionName.c_str(), "multiply") == 0) {
+      float host_float_x = readFloatType(RPCSTUBSOCKET);
+      float host_float_y = readFloatType(RPCSTUBSOCKET);
 
-      __subtract(f_x, f_y);
-    } else if (strcmp(functionNameBuffer, "multiply") == 0) {
-      char float_x[16];
-      RPCSTUBSOCKET->read(float_x, 16);
-      float f_x = atof(float_x);
-      
-      char float_y[16];
-      RPCSTUBSOCKET->read(float_y, 16);
-      float f_y = atof(float_y);
+      __multiply(host_float_x, host_float_y);
+    } else if (strcmp(functionName.c_str(), "divide") == 0) {
+      float host_float_x = readFloatType(RPCSTUBSOCKET);
+      float host_float_y = readFloatType(RPCSTUBSOCKET);
 
-      __multiply(f_x, f_y);
-    } else if (strcmp(functionNameBuffer, "divide") == 0) {
-      char float_x[16];
-      RPCSTUBSOCKET->read(float_x, 16);
-      float f_x = atof(float_x);
-      
-      char float_y[16];
-      RPCSTUBSOCKET->read(float_y, 16);
-      float f_y = atof(float_y);
-
-      __divide(f_x, f_y);
+      __divide(host_float_x, host_float_y);
     } else {
       __badFunction(functionNameBuffer);
     }
   }
-}
-
- 
-//
-//                   getFunctionNamefromStream
-//
-//   Helper routine to read function name from the stream. 
-//   Note that this code is the same for all stubs, so can be generated
-//   as boilerplate.
-//
-//   Important: this routine must leave the sock open but at EOF
-//   when eof is read from client.
-//
-void getFunctionNameFromStream(char *buffer, unsigned int bufSize) {
-  unsigned int i;
-  char *bufp;    // next char to read
-  bool readnull;
-  ssize_t readlen;             // amount of data read from socket
-  
-  //
-  // Read a message from the stream
-  // -1 in size below is to leave room for null
-  //
-  readnull = false;
-  bufp = buffer;
-  for (i=0; i< bufSize; i++) {
-    readlen = RPCSTUBSOCKET-> read(bufp, 1);  // read a byte
-    // check for eof or error
-    if (readlen == 0) {
-      break;
-    }
-    // check for null and bump buffer pointer
-    if (*bufp++ == '\0') {
-      readnull = true;
-      break;
-    }
-  }
-  
-  //
-  // With TCP streams, we should never get a 0 length read
-  // except with timeouts (which we're not setting in pingstreamserver)
-  // or EOF
-  //
-  if (readlen == 0) {
-    c150debug->printf(C150RPCDEBUG,"floatarithmetic.stub: read zero length message, checking EOF");
-    if (RPCSTUBSOCKET-> eof()) {
-      c150debug->printf(C150RPCDEBUG,"floatarithmetic.stub: EOF signaled on input");
-
-    } else {
-      throw C150Exception("floatarithmetic.stub: unexpected zero length read without eof");
-    }
-  }
-
-  //
-  // If we didn't get a null, input message was poorly formatted
-  //
-  else if(!readnull) 
-    throw C150Exception("floatarithmetic.stub: method name not null terminated or too long");
-
-  
-  //
-  // Note that eof may be set here for our caller to check
-  //
-
 }
 
 
