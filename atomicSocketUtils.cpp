@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <cstring>
 #include <arpa/inet.h>
-#include "serialize.h"
+#include "atomicSocketUtils.h"
 #include "c150debug.h"
 #include "c150streamsocket.h"
 
@@ -15,7 +15,7 @@ void sendStringType (C150StreamSocket *socket, string stringData) {
 string readStringType (C150StreamSocket *socket) {
 	char readBuffer[512];
 	ssize_t readlen; 
-	readlen = sock->read(readBuffer, sizeof(readBuffer) - 1);
+	readlen = socket->read(readBuffer, sizeof(readBuffer) - 1);
 	readBuffer[readlen] = '\0';
 	string stringData(readBuffer);
 	return stringData;
@@ -54,59 +54,60 @@ float readFloatType (C150StreamSocket *socket) {
 	return floatData;
 }
 
-void sendFunctionName (C150StreamSocket *socket, char  *functionName) {
+void sendFunctionName (C150StreamSocket *socket, const char  *functionName) {
     socket->write(functionName, strlen(functionName) + 1);
 }
 
-string readFunctionName (C150StreamSocket *socket) {
-	unsigned int i;
-	char bufp[50];    // next char to read
-	bool readnull;
-	ssize_t readlen;             // amount of data read from socket
+string readFunctionName(C150StreamSocket *socket, char *buffer, unsigned int bufSize) {
+  	unsigned int i;
+ 	char *bufp;    // next char to read
+  	bool readnull;
+  	ssize_t readlen;             // amount of data read from socket
+  
+  	//
+  	// Read a message from the stream
+  	// -1 in size below is to leave room for null
+  	//
+  	readnull = false;
+  	bufp = buffer;
+  	for (i=0; i< bufSize; i++) {
+   		readlen = socket-> read(bufp, 1);  // read a byte
+    	// check for eof or error
+    	if (readlen == 0) {
+      		break;
+    	}
+    	// check for null and bump buffer pointer
+    	if (*bufp++ == '\0') {
+     		readnull = true;
+      		break;
+    	}
+  	}
+  
+  	//
+  	// With TCP streams, we should never get a 0 length read
+  	// except with timeouts (which we're not setting in pingstreamserver)
+  	// or EOF
+  	//
+  	if (readlen == 0) {
+    	c150debug->printf(C150RPCDEBUG,"floatarithmetic.stub: read zero length message, checking EOF");
+    	if (socket-> eof()) {
+      	c150debug->printf(C150RPCDEBUG,"floatarithmetic.stub: EOF signaled on input");
 
-	//
-	// Read a message from the stream
-	// -1 in size below is to leave room for null
-	//
-	readnull = false;
-	for (i=0; i< 50; i++) {
-	readlen = RPCSTUBSOCKET-> read(bufp, 1);  // read a byte
-	// check for eof or error
-	if (readlen == 0) {
-	  break;
-	}
-	// check for null and bump buffer pointer
-	if (*bufp++ == '\0') {
-	  readnull = true;
-	  break;
-	}
-	}
+    	} else {
+      	throw C150Exception("floatarithmetic.stub: unexpected zero length read without eof");
+    	}
+  	}
 
-	//
-	// With TCP streams, we should never get a 0 length read
-	// except with timeouts (which we're not setting in pingstreamserver)
-	// or EOF
-	//
-	if (readlen == 0) {
-	c150debug->printf(C150RPCDEBUG,"arithmetic.stub: read zero length message, checking EOF");
-	if (RPCSTUBSOCKET-> eof()) {
-	  c150debug->printf(C150RPCDEBUG,"arithmetic.stub: EOF signaled on input");
+  	//
+  	// If we didn't get a null, input message was poorly formatted
+  	//
+  	else if(!readnull) 
+    	throw C150Exception("floatarithmetic.stub: method name not null terminated or too long");
 
-	} else {
-	  throw C150Exception("arithmetic.stub: unexpected zero length read without eof");
-	}
-	}
-
-	//
-	// If we didn't get a null, input message was poorly formatted
-	//
-	else if(!readnull) 
-	throw C150Exception("arithmetic.stub: method name not null terminated or too long");
-
-
-	//
-	// Note that eof may be set here for our caller to check
-	//	
-	String functionName(bufp);
+  
+  	//
+  	// Note that eof may be set here for our caller to check
+  	//
+	string functionName(buffer);
 	return functionName;
 }

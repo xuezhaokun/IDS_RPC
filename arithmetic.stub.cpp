@@ -40,8 +40,8 @@
 // CODE HERE ACTUALLY MATCHES THE REMOTED INTERFACE
 
 #include "arithmetic.idl"
-
 #include "rpcstubhelper.h"
+#include "atomicSocketUtils.h"
 
 #include <cstdio>
 #include <cstring>
@@ -82,8 +82,7 @@ int __add(int x, int y) {
   //
   c150debug->printf(C150RPCDEBUG,"arithmetic.stub.cpp: returned from  add() -- responding to client");
   int result = add(x, y);
-  uint32_t net_result = htonl(result);
-  RPCSTUBSOCKET->write((char*) &net_result, sizeof(uint32_t));
+  sendIntType(RPCSTUBSOCKET, result);
   return result;
 }
 
@@ -102,8 +101,7 @@ int __subtract(int x, int y) {
   //
   c150debug->printf(C150RPCDEBUG,"arithmetic.stub.cpp: returned from  subtract() -- responding to client");
   int result = subtract(x, y);
-  uint32_t net_result = htonl(result);
-  RPCSTUBSOCKET->write((char*) &net_result, sizeof(uint32_t));
+  sendIntType(RPCSTUBSOCKET, result);
   return result;
 }
 
@@ -124,8 +122,7 @@ int __multiply(int x, int y) {
   //
   c150debug->printf(C150RPCDEBUG,"arithmetic.stub.cpp: returned from  multiply() -- responding to client");
   int result = multiply(x, y);
-  uint32_t net_result = htonl(result);
-  RPCSTUBSOCKET->write((char*) &net_result, sizeof(uint32_t));
+  sendIntType(RPCSTUBSOCKET, result);
   return result;
 }
 
@@ -147,8 +144,7 @@ int __divide(int x, int y) {
   //
   c150debug->printf(C150RPCDEBUG,"arithmetic.stub.cpp: returned from  divide() -- responding to client");
   int result = divide(x, y);
-  uint32_t net_result = htonl(result);
-  RPCSTUBSOCKET->write((char*) &net_result, sizeof(uint32_t));
+  sendIntType(RPCSTUBSOCKET, result);
   return result;
 }
 
@@ -193,58 +189,28 @@ void dispatchFunction() {
 
 
   char functionNameBuffer[50];
-
-  //
-  // Read the function name from the stream -- note
-  // REPLACE THIS WITH YOUR OWN LOGIC DEPENDING ON THE 
-  // WIRE FORMAT YOU USE
-  //
-  getFunctionNameFromStream(functionNameBuffer,sizeof(functionNameBuffer));
-
-  //
-  // We've read the function name, call the stub for the right one
-  // The stub will invoke the function and send response.
-  //
-
+  string functionName = readFunctionName(RPCSTUBSOCKET, functionNameBuffer, sizeof(functionNameBuffer));
+  
   if (!RPCSTUBSOCKET-> eof()) {
-    if (strcmp(functionNameBuffer, "add") == 0) {
-      uint32_t net_int_x;
-      RPCSTUBSOCKET->read((char*) &net_int_x, sizeof(uint32_t));
-      uint32_t host_int_x = ntohl(net_int_x);
-
-      uint32_t net_int_y;
-      RPCSTUBSOCKET->read((char*) &net_int_y, sizeof(uint32_t));
-      uint32_t host_int_y = ntohl(net_int_y);
+    //string functionName = readFunctionName(RPCSTUBSOCKET, functionNameBuffer);
+    if (strcmp(functionName.c_str(), "add") == 0) {
+      int host_int_x = readIntType(RPCSTUBSOCKET);
+      int host_int_y = readIntType(RPCSTUBSOCKET);
 
       __add(host_int_x, host_int_y);
-    } else if (strcmp(functionNameBuffer, "subtract") == 0) {
-      uint32_t net_int_x;
-      RPCSTUBSOCKET->read((char*) &net_int_x, sizeof(uint32_t));
-      uint32_t host_int_x = ntohl(net_int_x);
-
-      uint32_t net_int_y;
-      RPCSTUBSOCKET->read((char*) &net_int_y, sizeof(uint32_t));
-      uint32_t host_int_y = ntohl(net_int_y);
+    } else if (strcmp(functionName.c_str(), "subtract") == 0) {
+      int host_int_x = readIntType(RPCSTUBSOCKET);
+      int host_int_y = readIntType(RPCSTUBSOCKET);
 
       __subtract(host_int_x, host_int_y);
-    } else if (strcmp(functionNameBuffer, "multiply") == 0) {
-      uint32_t net_int_x;
-      RPCSTUBSOCKET->read((char*) &net_int_x, sizeof(uint32_t));
-      uint32_t host_int_x = ntohl(net_int_x);
-
-      uint32_t net_int_y;
-      RPCSTUBSOCKET->read((char*) &net_int_y, sizeof(uint32_t));
-      uint32_t host_int_y = ntohl(net_int_y);
+    } else if (strcmp(functionName.c_str(), "multiply") == 0) {
+      int host_int_x = readIntType(RPCSTUBSOCKET);
+      int host_int_y = readIntType(RPCSTUBSOCKET);
 
       __multiply(host_int_x, host_int_y);
-    } else if (strcmp(functionNameBuffer, "divide") == 0) {
-      uint32_t net_int_x;
-      RPCSTUBSOCKET->read((char*) &net_int_x, sizeof(uint32_t));
-      uint32_t host_int_x = ntohl(net_int_x);
-
-      uint32_t net_int_y;
-      RPCSTUBSOCKET->read((char*) &net_int_y, sizeof(uint32_t));
-      uint32_t host_int_y = ntohl(net_int_y);
+    } else if (strcmp(functionName.c_str(), "divide") == 0) {
+      int host_int_x = readIntType(RPCSTUBSOCKET);
+      int host_int_y = readIntType(RPCSTUBSOCKET);
 
       __divide(host_int_x, host_int_y);
     } else {
@@ -253,68 +219,8 @@ void dispatchFunction() {
   }
 }
 
+
  
-//
-//                   getFunctionNamefromStream
-//
-//   Helper routine to read function name from the stream. 
-//   Note that this code is the same for all stubs, so can be generated
-//   as boilerplate.
-//
-//   Important: this routine must leave the sock open but at EOF
-//   when eof is read from client.
-//
-void getFunctionNameFromStream(char *buffer, unsigned int bufSize) {
-  unsigned int i;
-  char *bufp;    // next char to read
-  bool readnull;
-  ssize_t readlen;             // amount of data read from socket
-  
-  //
-  // Read a message from the stream
-  // -1 in size below is to leave room for null
-  //
-  readnull = false;
-  bufp = buffer;
-  for (i=0; i< bufSize; i++) {
-    readlen = RPCSTUBSOCKET-> read(bufp, 1);  // read a byte
-    // check for eof or error
-    if (readlen == 0) {
-      break;
-    }
-    // check for null and bump buffer pointer
-    if (*bufp++ == '\0') {
-      readnull = true;
-      break;
-    }
-  }
-  
-  //
-  // With TCP streams, we should never get a 0 length read
-  // except with timeouts (which we're not setting in pingstreamserver)
-  // or EOF
-  //
-  if (readlen == 0) {
-    c150debug->printf(C150RPCDEBUG,"arithmetic.stub: read zero length message, checking EOF");
-    if (RPCSTUBSOCKET-> eof()) {
-      c150debug->printf(C150RPCDEBUG,"arithmetic.stub: EOF signaled on input");
 
-    } else {
-      throw C150Exception("arithmetic.stub: unexpected zero length read without eof");
-    }
-  }
-
-  //
-  // If we didn't get a null, input message was poorly formatted
-  //
-  else if(!readnull) 
-    throw C150Exception("arithmetic.stub: method name not null terminated or too long");
-
-  
-  //
-  // Note that eof may be set here for our caller to check
-  //
-
-}
 
 
