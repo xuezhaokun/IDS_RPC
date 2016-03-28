@@ -45,19 +45,17 @@
 // AND STUBS, AND ALSO USED AS INPUT TO AUTOMATIC PROXY/STUB
 // GENERATOR PROGRAM
 
-#include "structs.idl"
 
 #include "rpcproxyhelper.h"
-
 #include "c150debug.h"
 #include "c150grading.h"
-#include <fstream>
 
-#include <cstdio>
+#include <cstring>
 #include <string>
+
 using namespace std;          // for C++ std library
 using namespace C150NETWORK;  // for all the comp150 utilities 
-
+#include "structs.idl"
 // forward declarations
 void setUpDebugLogging(const char *logname, int argc, char *argv[]);
 
@@ -112,17 +110,19 @@ main(int argc, char *argv[]) {
        Person p2;
        Person p3;
 
-       p1.firstname = "john";
-       p1.lastname = "peter";
+       //p1.firstname = string("john");
+       //p1.lastname = string("peter");
        p1.age = 20;
-       
-       p2.firstname = "hi";
-       p2.lastname = "hello";
+       //cout << "p1 firstname: " << p1.firstname << " lastname: " << p1.lastname << " age: " << p1.age << endl;
+       //p2.firstname = string("hi");
+       //p2.lastname = string("hello");
        p2.age = 25;
+       //cout << "p2 firstname: " << p2.firstname << " lastname: " << p2.lastname << " age: " << p2.age << endl;
 
-       p3.firstname = "yes";
-       p3.lastname = "no";
+       //p3.firstname = string("yes");
+       //p3.lastname = string("no");
        p3.age = 26;
+       //cout << "p3 firstname: " << p3.firstname << " lastname: " << p3.lastname << " age: " << p3.age << endl;
 
        ThreePeople tp;
        tp.p1 = p1;
@@ -142,14 +142,14 @@ main(int argc, char *argv[]) {
        //
        printf("Calling findPerson\n");
        Person p = findPerson (tp);                          // remote call (we hope!)
-       cout << "p's firstname is " << p.firstname << endl;
+       cout << "p's firstname is " << p.age << endl;
 
        // 
        // Call (possibly remote) subtract
        //
        printf("Calling area\n");
        int result = area(r);                          // remote call (we hope!)
-       printf("Returned from subtract(10.0,3.5). Result=%d\n",result);
+       printf("Returned from area. Result=%d\n",result);
 
      }
 

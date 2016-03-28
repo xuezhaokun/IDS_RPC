@@ -25,17 +25,19 @@
 // TO THE FUNCTIONS WE'RE IMPLEMENTING. THIS MAKES SURE THE
 // CODE HERE ACTUALLY MATCHES THE REMOTED INTERFACE
 
-#include "structs.idl"
+
 #include "rpcproxyhelper.h"
 #include "atomicSocketUtils.h"
 
 #include <cstdio>
 #include <cstring>
-#include <arpa/inet.h>
+#include <string>
+#include <iostream>
 #include "c150debug.h"
 
+using namespace std; 
 using namespace C150NETWORK;  // for all the comp150 utilities 
-
+#include "structs.idl"
 
 Person findPerson(ThreePeople tp) {
   //
@@ -44,26 +46,26 @@ Person findPerson(ThreePeople tp) {
   c150debug->printf(C150RPCDEBUG,"structs.proxy.cpp: add() invoked");
   sendFunctionName(RPCPROXYSOCKET, "findPerson");
   // send p1
-  sendStringType(RPCPROXYSOCKET, tp.p1.firstname);
-  sendStringType(RPCPROXYSOCKET, tp.p1.lastname);
-  sendInrType(RPCPROXYSOCKET, tp.p1.age);
+  //sendStringType(RPCPROXYSOCKET, tp.p1.firstname);
+  //sendStringType(RPCPROXYSOCKET, tp.p1.lastname);
+  sendIntType(RPCPROXYSOCKET, tp.p1.age);
   // send p2
-  sendStringType(RPCPROXYSOCKET, tp.p2.firstname);
-  sendStringType(RPCPROXYSOCKET, tp.p2.lastname);
-  sendInrType(RPCPROXYSOCKET, tp.p2.age);
+  //sendStringType(RPCPROXYSOCKET, tp.p2.firstname);
+  //sendStringType(RPCPROXYSOCKET, tp.p2.lastname);
+  sendIntType(RPCPROXYSOCKET, tp.p2.age);
   // send p3
-  sendStringType(RPCPROXYSOCKET, tp.p3.firstname);
-  sendStringType(RPCPROXYSOCKET, tp.p3.lastname);
-  sendInrType(RPCPROXYSOCKET, tp.p3.age);
+  //sendStringType(RPCPROXYSOCKET, tp.p3.firstname);
+  //sendStringType(RPCPROXYSOCKET, tp.p3.lastname);
+  sendIntType(RPCPROXYSOCKET, tp.p3.age);
   //
   // Read the response
   //
   c150debug->printf(C150RPCDEBUG,"structs.proxy.cpp: add() invocation sent, waiting for response");
 
   c150debug->printf(C150RPCDEBUG,"structs.proxy.cpp: add() successful return from remote call");
-  People result;
-  result.firstname = readStringType(RPCPROXYSOCKET);
-  result.lastname = readStringType(RPCPROXYSOCKET);
+  Person result;
+  //result.firstname = readStringType(RPCPROXYSOCKET);
+  //result.lastname = readStringType(RPCPROXYSOCKET);
   result.age = readIntType(RPCPROXYSOCKET);
   //cout << ""
   return result;

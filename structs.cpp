@@ -17,16 +17,17 @@
 // TO THE FUNCTIONS WE'RE IMPLEMENTING. THIS MAKES SURE THE
 // CODE HERE ACTUALLY MATCHES THE REMOTED INTERFACE
 
-#include "structs.idl"
-#include "c150debug.h"
-#include "atomicSocketUtils.h"
+#include <string>
 #include <cstring>
-using namespace std;
+#include <iostream>
+using namespace std;          // for C++ std library
+#include "structs.idl"
 
-Person findPerson (ThreePeople tp){
+Person findPerson(ThreePeople tp){
+	cout << "returning p1" << endl;
 	return tp.p1;
 }
 
-int area (rectangle r){
+int area(rectangle r){
 	return (r.x * r.y);
 }

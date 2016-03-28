@@ -37,7 +37,7 @@ CPPFLAGS = -g -Wall -Werror -I$(C150IDSRPC) -I$(C150LIB)
 
 
 LDFLAGS = 
-INCLUDES = $(C150LIB)c150streamsocket.h $(C150LIB)c150network.h $(C150LIB)c150exceptions.h $(C150LIB)c150debug.h $(C150LIB)c150utility.h $(C150LIB)c150grading.h $(C150IDSRPC)IDLToken.h $(C150IDSRPC)tokenizeddeclarations.h  $(C150IDSRPC)tokenizeddeclaration.h $(C150IDSRPC)declarations.h $(C150IDSRPC)declaration.h $(C150IDSRPC)functiondeclaration.h $(C150IDSRPC)typedeclaration.h $(C150IDSRPC)arg_or_member_declaration.h rpcproxyhelper.h rpcstubhelper.h simplefunction.idl arithmetic.idl floatarithmetic.idl 
+INCLUDES = $(C150LIB)c150streamsocket.h $(C150LIB)c150network.h $(C150LIB)c150exceptions.h $(C150LIB)c150debug.h $(C150LIB)c150utility.h $(C150LIB)c150grading.h $(C150IDSRPC)IDLToken.h $(C150IDSRPC)tokenizeddeclarations.h  $(C150IDSRPC)tokenizeddeclaration.h $(C150IDSRPC)declarations.h $(C150IDSRPC)declaration.h $(C150IDSRPC)functiondeclaration.h $(C150IDSRPC)typedeclaration.h $(C150IDSRPC)arg_or_member_declaration.h rpcproxyhelper.h rpcstubhelper.h simplefunction.idl arithmetic.idl floatarithmetic.idl structs.idl 
 
 all: structsclient structsserver floatarithmeticclient floatarithmeticserver arithmeticclient arithmeticserver pingstreamclient pingstreamserver idldeclarationtst simplefunctionclient simplefunctionserver idl_to_json
 
@@ -101,14 +101,14 @@ floatarithmeticclient: floatarithmeticclient.o rpcproxyhelper.o atomicSocketUtil
 floatarithmeticserver: floatarithmetic.stub.o rpcserver.o rpcstubhelper.o atomicSocketUtils.o floatarithmetic.o  $(C150AR) $(C150IDSRPCAR)  $(INCLUDES)
 	$(CPP) -o floatarithmeticserver rpcserver.o floatarithmetic.stub.o atomicSocketUtils.o floatarithmetic.o rpcstubhelper.o $(C150AR) $(C150IDSRPCAR) 
 
-structsclient: structsclient.o rpcproxyhelper.o atomicSocketUtils.o structs.proxy.o  $(C150AR) $(C150IDSRPCAR)  $(INCLUDES)
+structsclient: structsclient.o rpcproxyhelper.o atomicSocketUtils.o structs.proxy.o  $(C150AR) $(C150IDSRPCAR) $(INCLUDES)
 	$(CPP) -o structsclient structsclient.o rpcproxyhelper.o atomicSocketUtils.o structs.proxy.o  $(C150AR) $(C150IDSRPCAR) 
 
 # The following is NOT a mistake. The main program for any of the rpc servers
 # is rpcserver.o.  This way, we can make a different one for each set 
 # of functions, by linking the right specific stugs (in this case
 # simplefunction.stub.o)
-structsserver: structs.stub.o rpcserver.o rpcstubhelper.o atomicSocketUtils.o structs.o  $(C150AR) $(C150IDSRPCAR)  $(INCLUDES)
+structsserver: structs.stub.o rpcserver.o rpcstubhelper.o atomicSocketUtils.o structs.o  $(C150AR) $(C150IDSRPCAR) $(INCLUDES)
 	$(CPP) -o structsserver rpcserver.o structs.stub.o atomicSocketUtils.o structs.o rpcstubhelper.o $(C150AR) $(C150IDSRPCAR) 
 
 

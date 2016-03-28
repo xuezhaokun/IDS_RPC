@@ -39,14 +39,17 @@
 // TO THE FUNCTIONS WE'RE IMPLEMENTING. THIS MAKES SURE THE
 // CODE HERE ACTUALLY MATCHES THE REMOTED INTERFACE
 
-#include "structs.idl"
+
 #include "rpcstubhelper.h"
 #include "atomicSocketUtils.h"
 #include <cstring>
+#include <string>
 #include "c150debug.h"
 
+using namespace std; 
 using namespace C150NETWORK;  // for all the comp150 utilities 
 
+#include "structs.idl"
 void getFunctionNamefromStream();
 
 // ======================================================================
@@ -79,9 +82,11 @@ void __findPerson(ThreePeople tp) {
   // where we'd send the return value back.
   //
   c150debug->printf(C150RPCDEBUG,"structs.stub.cpp: returned from  findPerson() -- responding to client");
+  cout << "calling __findPerson" << endl;
   Person result = findPerson(tp);
-  sendStringType(RPCSTUBSOCKET, result.firstname);
-  sendStringType(RPCSTUBSOCKET, result.lastname);
+  cout << "result firstname is " << result.age << endl;
+  //sendStringType(RPCSTUBSOCKET, result.firstname);
+  //sendStringType(RPCSTUBSOCKET, result.lastname);
   sendIntType(RPCSTUBSOCKET, result.age);
   //sendFloatType(RPCSTUBSOCKET, result);
   //return result;
@@ -153,22 +158,32 @@ void dispatchFunction() {
   if (!RPCSTUBSOCKET-> eof()) {
     //string functionName = readFunctionName(RPCSTUBSOCKET, functionNameBuffer);
     if (strcmp(functionName.c_str(), "findPerson") == 0) {
+      cout << "received findPerson request" << endl;
       ThreePeople tp;
-      People p1;
-      People p2;
-      People p3;
+      Person p1;
+      Person p2;
+      Person p3;
 
-      p1.firstname = readStringType(RPCSTUBSOCKET);
-      p1.lastname = readStringType(RPCSTUBSOCKET);
+      //p1.firstname = readStringType(RPCSTUBSOCKET);
+      //cout << "p1 firstname: " << p1.firstname << endl;
+      //p1.lastname = readStringType(RPCSTUBSOCKET);
+      //cout << "p1 lastname: " << p1.lastname << endl;
       p1.age = readIntType(RPCSTUBSOCKET);
-
-      p2.firstname = readStringType(RPCSTUBSOCKET);
-      p2.lastname = readStringType(RPCSTUBSOCKET);
+      cout << "p1 age: " << p1.age << endl;
+      
+      //p2.firstname = readStringType(RPCSTUBSOCKET);
+      //cout << "p2 firstname: " << p2.firstname << endl;
+      //p2.lastname = readStringType(RPCSTUBSOCKET);
+      //cout << "p2 lastname: " << p2.lastname << endl;
       p2.age = readIntType(RPCSTUBSOCKET);
+      cout << "p2 age: " << p2.age << endl;
 
-      p3.firstname = readStringType(RPCSTUBSOCKET);
-      p3.lastname = readStringType(RPCSTUBSOCKET);
+      //p3.firstname = readStringType(RPCSTUBSOCKET);
+      //cout << "p3 firstname: " << p3.firstname << endl;
+      //p3.lastname = readStringType(RPCSTUBSOCKET);
+      //cout << "p3 lastname: " << p3.lastname << endl;
       p3.age = readIntType(RPCSTUBSOCKET);
+      cout << "p3 age: " << p3.age << endl;
 
       tp.p1 = p1;
       tp.p2 = p2;

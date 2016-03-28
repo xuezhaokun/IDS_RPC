@@ -1,11 +1,10 @@
 #ifndef __ATOMICSOCKETUTILS_H__
 #define __ATOMICSOCKETUTILS_H__
 
-#include <cstring>
+#include <string>
 #include "c150streamsocket.h"
 
 using namespace C150NETWORK;
-
 using namespace std;
 
 void sendStringType (C150StreamSocket *socket, string stringData);

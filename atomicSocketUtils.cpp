@@ -1,9 +1,10 @@
-#include <cstdio>
-#include <cstring>
-#include <arpa/inet.h>
 #include "atomicSocketUtils.h"
 #include "c150debug.h"
 #include "c150streamsocket.h"
+#include <cstdio>
+#include <cstring>
+#include <string>
+#include <arpa/inet.h>
 
 using namespace C150NETWORK;
 using namespace std;
@@ -18,6 +19,7 @@ string readStringType (C150StreamSocket *socket) {
 	readlen = socket->read(readBuffer, sizeof(readBuffer) - 1);
 	readBuffer[readlen] = '\0';
 	string stringData(readBuffer);
+  cout << "read: " << stringData << endl;
 	return stringData;
 }
 
