@@ -1,4 +1,8 @@
-struct Person {string firstname; string lastname; int age;};
+struct Person {
+	string firstname; 
+	string lastname; 
+	int age;
+};
 
 struct ThreePeople {
   Person p1;
