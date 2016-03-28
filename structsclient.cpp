@@ -110,19 +110,19 @@ main(int argc, char *argv[]) {
        Person p2;
        Person p3;
 
-       //p1.firstname = string("john");
-       //p1.lastname = string("peter");
+       p1.firstname = string("john");
+       p1.lastname = string("peter");
        p1.age = 20;
-       //cout << "p1 firstname: " << p1.firstname << " lastname: " << p1.lastname << " age: " << p1.age << endl;
-       //p2.firstname = string("hi");
-       //p2.lastname = string("hello");
+       cout << "p1 firstname: " << p1.firstname << " lastname: " << p1.lastname << " age: " << p1.age << endl;
+       p2.firstname = string("hi");
+       p2.lastname = string("hello");
        p2.age = 25;
-       //cout << "p2 firstname: " << p2.firstname << " lastname: " << p2.lastname << " age: " << p2.age << endl;
+       cout << "p2 firstname: " << p2.firstname << " lastname: " << p2.lastname << " age: " << p2.age << endl;
 
-       //p3.firstname = string("yes");
-       //p3.lastname = string("no");
+       p3.firstname = string("yes");
+       p3.lastname = string("no");
        p3.age = 26;
-       //cout << "p3 firstname: " << p3.firstname << " lastname: " << p3.lastname << " age: " << p3.age << endl;
+       cout << "p3 firstname: " << p3.firstname << " lastname: " << p3.lastname << " age: " << p3.age << endl;
 
        ThreePeople tp;
        tp.p1 = p1;

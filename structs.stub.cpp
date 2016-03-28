@@ -85,11 +85,9 @@ void __findPerson(ThreePeople tp) {
   cout << "calling __findPerson" << endl;
   Person result = findPerson(tp);
   cout << "result firstname is " << result.age << endl;
-  //sendStringType(RPCSTUBSOCKET, result.firstname);
-  //sendStringType(RPCSTUBSOCKET, result.lastname);
+  sendStringType(RPCSTUBSOCKET, result.firstname);
+  sendStringType(RPCSTUBSOCKET, result.lastname);
   sendIntType(RPCSTUBSOCKET, result.age);
-  //sendFloatType(RPCSTUBSOCKET, result);
-  //return result;
 }
 
 void __area(rectangle r) {
@@ -164,24 +162,24 @@ void dispatchFunction() {
       Person p2;
       Person p3;
 
-      //p1.firstname = readStringType(RPCSTUBSOCKET);
-      //cout << "p1 firstname: " << p1.firstname << endl;
-      //p1.lastname = readStringType(RPCSTUBSOCKET);
-      //cout << "p1 lastname: " << p1.lastname << endl;
+      p1.firstname = readStringType(RPCSTUBSOCKET);
+      cout << "p1 firstname: " << p1.firstname << endl;
+      p1.lastname = readStringType(RPCSTUBSOCKET);
+      cout << "p1 lastname: " << p1.lastname << endl;
       p1.age = readIntType(RPCSTUBSOCKET);
       cout << "p1 age: " << p1.age << endl;
       
-      //p2.firstname = readStringType(RPCSTUBSOCKET);
-      //cout << "p2 firstname: " << p2.firstname << endl;
-      //p2.lastname = readStringType(RPCSTUBSOCKET);
-      //cout << "p2 lastname: " << p2.lastname << endl;
+      p2.firstname = readStringType(RPCSTUBSOCKET);
+      cout << "p2 firstname: " << p2.firstname << endl;
+      p2.lastname = readStringType(RPCSTUBSOCKET);
+      cout << "p2 lastname: " << p2.lastname << endl;
       p2.age = readIntType(RPCSTUBSOCKET);
       cout << "p2 age: " << p2.age << endl;
 
-      //p3.firstname = readStringType(RPCSTUBSOCKET);
-      //cout << "p3 firstname: " << p3.firstname << endl;
-      //p3.lastname = readStringType(RPCSTUBSOCKET);
-      //cout << "p3 lastname: " << p3.lastname << endl;
+      p3.firstname = readStringType(RPCSTUBSOCKET);
+      cout << "p3 firstname: " << p3.firstname << endl;
+      p3.lastname = readStringType(RPCSTUBSOCKET);
+      cout << "p3 lastname: " << p3.lastname << endl;
       p3.age = readIntType(RPCSTUBSOCKET);
       cout << "p3 age: " << p3.age << endl;
 

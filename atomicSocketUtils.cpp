@@ -10,21 +10,36 @@ using namespace C150NETWORK;
 using namespace std;
 
 void sendStringType (C150StreamSocket *socket, string stringData) {
-	socket->write(stringData.c_str(), stringData.length() + 1);
+  int length = stringData.length();
+  sendIntType(socket, length);
+  socket->write(stringData.c_str(), length);
+}
+string readStringType (C150StreamSocket *socket) {
+  int length = readIntType(socket);
+  char readBuffer[length];
+  socket->read(readBuffer, length);
+  readBuffer[length] = '\0';
+  string stringData(readBuffer);
+  cleanString(stringData);
+  return stringData;
 }
 
-string readStringType (C150StreamSocket *socket) {
-	char readBuffer[512];
-	ssize_t readlen; 
-	readlen = socket->read(readBuffer, sizeof(readBuffer) - 1);
-	readBuffer[readlen] = '\0';
-	string stringData(readBuffer);
-  cout << "read: " << stringData << endl;
-	return stringData;
+/*void sendStringType (C150StreamSocket *socket, string stringData) {
+  socket->write(stringData.c_str(), stringData.length() + 1);
 }
+string readStringType (C150StreamSocket *socket) {
+  char readBuffer[512];
+  ssize_t readlen; 
+  readlen = socket->read(readBuffer, 512);
+  readBuffer[readlen] = '\0';
+  string stringData(readBuffer);
+  cleanString(stringData);
+  cout << "read: " << stringData << endl;
+  return stringData;
+}*/
 
 void sendIntType (C150StreamSocket *socket, int intData) {
-	uint32_t netIntData = htonl(intData);
+	 uint32_t netIntData = htonl(intData);
     socket->write((char*) &netIntData, sizeof(uint32_t));
 }
 
@@ -33,14 +48,6 @@ int readIntType (C150StreamSocket *socket) {
     socket->read((char*) &netIntData, sizeof(uint32_t));
     uint32_t hostIntData = ntohl(netIntData);
     return hostIntData;
-}
-
-void sendVoidType (C150StreamSocket *socket) {
-	sendIntType(socket, 0);
-}
-
-void readVoidType (C150StreamSocket *socket) {
-	readIntType(socket);
 }
 
 void sendFloatType (C150StreamSocket *socket, float floatData) {
@@ -56,13 +63,21 @@ float readFloatType (C150StreamSocket *socket) {
 	return floatData;
 }
 
+void sendVoidType (C150StreamSocket *socket) {
+  sendIntType(socket, 0);
+}
+
+void readVoidType (C150StreamSocket *socket) {
+  readIntType(socket);
+}
+
 void sendFunctionName (C150StreamSocket *socket, const char  *functionName) {
     socket->write(functionName, strlen(functionName) + 1);
 }
 
 string readFunctionName(C150StreamSocket *socket, char *buffer, unsigned int bufSize) {
   	unsigned int i;
- 	char *bufp;    // next char to read
+ 	  char *bufp;    // next char to read
   	bool readnull;
   	ssize_t readlen;             // amount of data read from socket
   
