@@ -17,6 +17,9 @@ vector<string>
 split(const string &s, char delim);
 string
 getFileBasename (const char *filename);
+string 
+commonheader(string fileBasename);
+
 
 int 
 main(int argc, char const *argv[])
@@ -34,6 +37,7 @@ main(int argc, char const *argv[])
   	for (argnum = 1; argnum < argc; argnum ++) {
     	string fileBasename = getFileBasename(argv[argnum]);
     	cout << "basename is " << fileBasename << endl;
+    	cout << "commonheader is " << commonheader(fileBasename) << endl;
     }
     return 0;
 }
@@ -66,3 +70,22 @@ split(const string &s, char delim) {
     split(s, delim, elems);
     return elems;
 }
+
+string 
+commonheader(string fileBasename) {
+    string header = "";
+    header.append("#include \"c150debug.h\"\n")
+          .append("#include \"rpcproxyhelper.h\"\n")
+       	  .append("#include \"atomicSocketUtils.h\"\n") 
+          .append("#include <fstream>\n")
+          .append("#include <cstdio>\n")
+       	  .append("#include <cstring>\n")
+       	  .append("#include <string>\n")
+       	  .append("#include <fstream>\n")
+       	  .append("#include <arpa/inet.h>\n") 
+       	  .append("using namespace C150NETWORK;\n")
+       	  .append("using namespace std;\n")
+       	  .append("#include \"" + fileBasename + ".idl\"\n");
+    return header;
+}
+
