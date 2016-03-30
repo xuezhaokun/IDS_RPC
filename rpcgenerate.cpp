@@ -18,8 +18,13 @@ split(const string &s, char delim);
 string
 getFileBasename (const char *filename);
 string 
-commonheader(string fileBasename);
-
+fileheaders(string fileBasename);
+void
+structTypeHandler (TypeDeclaration* typep, File *additionalTypeHeader, File *additionalTypeFunc);
+string
+buildSendFunction(string sendFunctionName, string parameters, string socket);
+string
+buildReadFunction (string readFunctionName, string socket);
 
 int 
 main(int argc, char const *argv[])
@@ -37,7 +42,7 @@ main(int argc, char const *argv[])
   	for (argnum = 1; argnum < argc; argnum ++) {
     	string fileBasename = getFileBasename(argv[argnum]);
     	cout << "basename is " << fileBasename << endl;
-    	cout << "commonheader is " << commonheader(fileBasename) << endl;
+    	cout << "commonheader is " << fileheaders(fileBasename) << endl;
     }
     return 0;
 }
@@ -72,7 +77,7 @@ split(const string &s, char delim) {
 }
 
 string 
-commonheader(string fileBasename) {
+fileheaders(string fileBasename) {
     string header = "";
     header.append("#include \"c150debug.h\"\n")
           .append("#include \"rpcproxyhelper.h\"\n")
@@ -85,7 +90,45 @@ commonheader(string fileBasename) {
        	  .append("#include <arpa/inet.h>\n") 
        	  .append("using namespace C150NETWORK;\n")
        	  .append("using namespace std;\n")
-       	  .append("#include \"" + fileBasename + ".idl\"\n");
+       	  =----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------.append("#include \"" + fileBasename + ".idl\"\n");
     return header;
 }
+
+void
+structTypeHandler (TypeDeclaration* typep, File *additionalTypeHeader, File *additionalTypeFunc) {
+	unsigned memberNum;
+	string tyName = typep -> getName();
+	string readFunctionName = "readStruct" + tyName;
+	string sendFunctionName = "sendStruct" + tyName;
+	string readStructPrototype = tyName + " " + readFunctionName + "(C150StreamSocket *socket)";
+	string sendStructPrototype = "void " + sendFunctionName + "(" + tyName + "structData, C150StreamSocket *socket)";
+	// write to handler header file
+	fprintf(additionalTypeHeader, "%s;\n", readStructPrototype.c_str());
+	fprintf(additionalTypeHeader, "%s;\n", sendStructPrototype.c_str());
+	// write to handler function file
+	string readFunction = readStructPrototype + "{\n\t";
+	string sendFunction = sendStructPrototype + "{\n\t";
+	readFunction = readFunction + tyName + " result;\n";
+
+	vector<Arg_or_Member_Declaration *>& members = typep -> getStructMembers();
+	for(memberNum=0; memberNum < members.size();memberNum++) {
+		Arg_or_Member_Declaration* memp = members[memberNum];
+		mempName = memp -> getName();
+		mempType = memp -> getType() -> getName();
+	}
+}
+
+
+string
+buildSendFunction(string sendFunctionName, string parameter, string socket) {
+
+}
+
+string
+buildReadFunction (string readFunctionName, string socket){
+	string readFunction = readFunctionName + "(" + socket +");\n";
+	return readFunction;
+}
+
+
 

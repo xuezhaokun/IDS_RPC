@@ -76,21 +76,21 @@ main(int argc, char *argv[])
     for (argnum = 1; argnum < argc; argnum ++) {
 
       try {
-	processIDLFile(argv[argnum]);
+	       processIDLFile(argv[argnum]);
       } 
 
       catch (C150Exception e) {
-	//
-	// If any of the exceptions that are created using the COMP 150
-	// framework are thrown, they come with a detailed explanation.
-	// Print it, then give up.
-	//
-	fprintf(stderr,"%s: caught C150Exception: %s\n", argv[0],  
-		e.formattedExplanation().c_str());
-	printf("...Giving up on file %s...",argv[argnum]);
-	if (argnum< (argc-1)) 
-	  printf("trying next file...\n\n"
-		 "-----------------------------------------\n\n");
+      	//
+      	// If any of the exceptions that are created using the COMP 150
+      	// framework are thrown, they come with a detailed explanation.
+      	// Print it, then give up.
+      	//
+      	fprintf(stderr,"%s: caught C150Exception: %s\n", argv[0],  
+      		e.formattedExplanation().c_str());
+      	printf("...Giving up on file %s...",argv[argnum]);
+      	if (argnum< (argc-1)) 
+      	  printf("trying next file...\n\n"
+      		 "-----------------------------------------\n\n");
       }
     }
     
@@ -204,7 +204,7 @@ processIDLFile(const char fileName[]) {
     formattedType.str("");      // empty the formatting buffer
 
     typep->to_string_stream(formattedType);   // format the type info into the buffer
-
+    
     printf("\n%s",formattedType.str().c_str());  // write the output
   } 
 
