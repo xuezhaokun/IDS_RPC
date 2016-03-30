@@ -9,12 +9,12 @@
 using namespace C150NETWORK;
 using namespace std;
 
-void sendStringType (C150StreamSocket *socket, string stringData) {
+void sendstringType (C150StreamSocket *socket, string stringData) {
   int length = stringData.length();
   sendIntType(socket, length);
   socket->write(stringData.c_str(), length);
 }
-string readStringType (C150StreamSocket *socket) {
+string readstringType (C150StreamSocket *socket) {
   int length = readIntType(socket);
   char readBuffer[length];
   socket->read(readBuffer, length);
@@ -38,36 +38,36 @@ string readStringType (C150StreamSocket *socket) {
   return stringData;
 }*/
 
-void sendIntType (C150StreamSocket *socket, int intData) {
+void sendintType (C150StreamSocket *socket, int intData) {
 	 uint32_t netIntData = htonl(intData);
     socket->write((char*) &netIntData, sizeof(uint32_t));
 }
 
-int readIntType (C150StreamSocket *socket) {
+int readintType (C150StreamSocket *socket) {
     uint32_t netIntData;
     socket->read((char*) &netIntData, sizeof(uint32_t));
     uint32_t hostIntData = ntohl(netIntData);
     return hostIntData;
 }
 
-void sendFloatType (C150StreamSocket *socket, float floatData) {
+void sendfloatType (C150StreamSocket *socket, float floatData) {
 	char floatBuffer[20];
 	sprintf(floatBuffer, "%f", floatData);
 	socket->write(floatBuffer, 20);
 }
 
-float readFloatType (C150StreamSocket *socket) {
+float readfloatType (C150StreamSocket *socket) {
 	char floatBuffer[20];
 	socket->read(floatBuffer, 20);
 	float floatData = atof(floatBuffer);
 	return floatData;
 }
 
-void sendVoidType (C150StreamSocket *socket) {
+void sendvoidType (C150StreamSocket *socket) {
   sendIntType(socket, 0);
 }
 
-void readVoidType (C150StreamSocket *socket) {
+void readvoidType (C150StreamSocket *socket) {
   readIntType(socket);
 }
 

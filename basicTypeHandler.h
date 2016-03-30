@@ -7,17 +7,17 @@
 using namespace C150NETWORK;
 using namespace std;
 
-void sendStringType (C150StreamSocket *socket, string stringData);
-string readStringType (C150StreamSocket *socket);
+void sendstringType (C150StreamSocket *socket, string stringData);
+string readstringType (C150StreamSocket *socket);
 
-void sendIntType (C150StreamSocket *socket, int intData);
-int readIntType (C150StreamSocket *socket);
+void sendintType (C150StreamSocket *socket, int intData);
+int readintType (C150StreamSocket *socket);
 
-void sendVoidType (C150StreamSocket *socket);
-void readVoidType (C150StreamSocket *socket);
+void sendvoidType (C150StreamSocket *socket);
+void readvoidType (C150StreamSocket *socket);
 
-void sendFloatType (C150StreamSocket *socket, float floatData);
-float readFloatType (C150StreamSocket *socket);
+void sendfloatType (C150StreamSocket *socket, float floatData);
+float readfloatType (C150StreamSocket *socket);
 
 void sendFunctionName (C150StreamSocket *socket, const char  *functionName);
 string readFunctionName(C150StreamSocket *socket, char *buffer, unsigned int bufSize);

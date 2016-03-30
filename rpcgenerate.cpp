@@ -20,11 +20,15 @@ getFileBasename (const char *filename);
 string 
 fileheaders(string fileBasename);
 void
-structTypeHandler (TypeDeclaration* typep, File *additionalTypeHeader, File *additionalTypeFunc);
+structTypeHandler (TypeDeclaration* typep);
 string
 buildSendFunction(string sendFunctionName, string parameters, string socket);
 string
 buildReadFunction (string readFunctionName, string socket);
+string 
+getSendFunctionName (TypeDeclaration* typep);
+string 
+getReadFunctionName (TypeDeclaration* typep);
 
 int 
 main(int argc, char const *argv[])
@@ -44,6 +48,9 @@ main(int argc, char const *argv[])
     	cout << "basename is " << fileBasename << endl;
     	cout << "commonheader is " << fileheaders(fileBasename) << endl;
     }
+    //FILE* additionalTypeHeader = fopen("additionalTypeHeader.h").c_str(), "w+");
+    //FILE* additionalTypeFunc = fopen("additionalTypeFunc.cpp").c_str(), "w+");
+
     return 0;
 }
 
@@ -90,16 +97,18 @@ fileheaders(string fileBasename) {
        	  .append("#include <arpa/inet.h>\n") 
        	  .append("using namespace C150NETWORK;\n")
        	  .append("using namespace std;\n")
-       	  =----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------.append("#include \"" + fileBasename + ".idl\"\n");
+       	  .append("#include \"" + fileBasename + ".idl\"\n");
     return header;
 }
 
 void
-structTypeHandler (TypeDeclaration* typep, File *additionalTypeHeader, File *additionalTypeFunc) {
+structTypeHandler (TypeDeclaration* typep) {
 	unsigned memberNum;
+	FILE* additionalTypeHeader = fopen("additionalTypeHeader.h", "w+");
+	FILE* additionalTypeFunc = fopen("additionalTypeFunc.cpp", "w+");
 	string tyName = typep -> getName();
-	string readFunctionName = "readStruct" + tyName;
-	string sendFunctionName = "sendStruct" + tyName;
+	string readFunctionName = getSendFunctionName(typep);
+	string sendFunctionName = getReadFunctionName(typep);
 	string readStructPrototype = tyName + " " + readFunctionName + "(C150StreamSocket *socket)";
 	string sendStructPrototype = "void " + sendFunctionName + "(" + tyName + "structData, C150StreamSocket *socket)";
 	// write to handler header file
@@ -108,20 +117,44 @@ structTypeHandler (TypeDeclaration* typep, File *additionalTypeHeader, File *add
 	// write to handler function file
 	string readFunction = readStructPrototype + "{\n\t";
 	string sendFunction = sendStructPrototype + "{\n\t";
-	readFunction = readFunction + tyName + " result;\n";
+	readFunction = readFunction + tyName + " result;\n\t";
 
 	vector<Arg_or_Member_Declaration *>& members = typep -> getStructMembers();
 	for(memberNum=0; memberNum < members.size();memberNum++) {
 		Arg_or_Member_Declaration* memp = members[memberNum];
-		mempName = memp -> getName();
-		mempType = memp -> getType() -> getName();
+		string mempName = memp -> getName();
+		string mempType = memp -> getType() -> getName();
+		// send function
+		sendFunctionName = getSendFunctionName(memp -> getType());
+		string sendParam = "structData." + mempName;
+		sendFunction += buildSendFunction(sendFunctionName, sendParam, "socket");
+
+		//read function
+
+		readFunction += "result." + mempName + " = ";
+		readFunctionName = getReadFunctionName(memp -> getType());
+		readFunction += buildReadFunction(readFunctionName, "socket");
 	}
+
+	sendFunction += "}\n";
+	readFunction += "\t return result;\n}\n";
+	// write to handler function file
+	fprintf(additionalTypeFunc, "%s;\n", sendFunction.c_str());
+	fprintf(additionalTypeFunc, "%s;\n", readFunction.c_str());
+	fclose(additionalTypeHeader);
+	fclose(additionalTypeFunc);
 }
 
 
 string
-buildSendFunction(string sendFunctionName, string parameter, string socket) {
-
+buildSendFunction(string sendFunctionName, string arg_or_member, string socket) {
+	string sendFunction = sendFunctionName + "(";
+	if (sendFunction == "sendvoidType") {
+		sendFunction += socket + ");\n";
+	} else {
+		sendFunction += arg_or_member + ", " + socket + ");\n";
+	}
+	return sendFunction;
 }
 
 string
@@ -130,5 +163,26 @@ buildReadFunction (string readFunctionName, string socket){
 	return readFunction;
 }
 
+string 
+getSendFunctionName (TypeDeclaration* typep) {
+	string sendFunctionName = "send";
+	string tyName = typep -> getName();
+	if (typep -> isStruct()) {
+		sendFunctionName += "Struct" + tyName;
+	} else {
+		sendFunctionName += tyName + "Type";
+	}
+	return tyName;
+}
 
-
+string 
+getReadFunctionName (TypeDeclaration* typep) {
+	string readFunctionName = "read";
+	string tyName = typep -> getName();
+	if (typep -> isStruct()) {
+		readFunctionName += "Struct" + tyName;
+	} else {
+		readFunctionName += tyName + "Type";
+	}
+	return tyName;
+}
