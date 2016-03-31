@@ -174,6 +174,11 @@ arrayTypeHandler (TypeDeclaration* typep) {
 
 	TypeDeclaration* temp = typep;
 
+	while (temp -> isArray()) {
+		int bound = temp -> getArrayBound();
+		// NEEDS TO DO, BUILD FOR LOOP
+		temp = temp -> getArrayMemberType();
+	}
 
 	fclose(additionalTypeHeader);
 	fclose(additionalTypeFunc);
@@ -203,6 +208,7 @@ buildArrayFunctionType (TypeDeclaration* typep) {
 	while (temp -> isArray()) {
 		int bound = temp -> getArrayBound();
 		tyName += "_" + to_string(bound);
+		temp = temp -> getArrayMemberType();
 	}
 	tyName = temp.getName() + tyName;
 	return tyName;
@@ -215,6 +221,7 @@ buildArrayArgType (TypeDeclaration* typep) {
 	while (temp -> isArray()) {
 		int bound = temp -> getArrayBound();
 		tyName += "[" + to_string(bound) + "]";
+		temp = temp -> getArrayMemberType();
 	}
 	tyName = temp.getName() + tyName;
 	return tyName;
