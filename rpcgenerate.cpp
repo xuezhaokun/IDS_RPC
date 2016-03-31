@@ -21,10 +21,16 @@ string
 fileheaders(string fileBasename);
 void
 structTypeHandler (TypeDeclaration* typep);
+void 
+arrayTypeHandler (TypeDeclaration* typep)
 string
 buildSendFunction(string sendFunctionName, string parameters, string socket);
 string
 buildReadFunction (string readFunctionName, string socket);
+string
+buildArrayFunctionType (TypeDeclaration* typep);
+string
+buildArrayArgType (TypeDeclaration* typep);
 string 
 getSendFunctionName (TypeDeclaration* typep);
 string 
@@ -110,7 +116,7 @@ structTypeHandler (TypeDeclaration* typep) {
 	string readFunctionName = getSendFunctionName(typep);
 	string sendFunctionName = getReadFunctionName(typep);
 	string readStructPrototype = tyName + " " + readFunctionName + "(C150StreamSocket *socket)";
-	string sendStructPrototype = "void " + sendFunctionName + "(" + tyName + "structData, C150StreamSocket *socket)";
+	string sendStructPrototype = "void " + sendFunctionName + "(" + tyName + " structData, C150StreamSocket *socket)";
 	// write to handler header file
 	fprintf(additionalTypeHeader, "%s;\n", readStructPrototype.c_str());
 	fprintf(additionalTypeHeader, "%s;\n", sendStructPrototype.c_str());
@@ -124,6 +130,7 @@ structTypeHandler (TypeDeclaration* typep) {
 		Arg_or_Member_Declaration* memp = members[memberNum];
 		string mempName = memp -> getName();
 		string mempType = memp -> getType() -> getName();
+
 		// send function
 		sendFunctionName = getSendFunctionName(memp -> getType());
 		string sendParam = "structData." + mempName;
@@ -146,6 +153,32 @@ structTypeHandler (TypeDeclaration* typep) {
 }
 
 
+void 
+arrayTypeHandler (TypeDeclaration* typep) {
+	unsigned memberNum;
+	FILE* additionalTypeHeader = fopen("additionalTypeHeader.h", "w+");
+	FILE* additionalTypeFunc = fopen("additionalTypeFunc.cpp", "w+");
+	string tyName = typep -> getName();
+	string readFunctionName = getSendFunctionName(typep);
+	string sendFunctionName = getReadFunctionName(typep);
+	string arrayArg = buildArrayArgType(typep);
+
+	string readArrayPrototype = "void " + readFunctionName + "(" + arrayArg " readArray, C150StreamSocket *socket)";
+	string sendArrayPrototype = "void " + sendFunctionName + "(" + arrayArg + " sendArray, C150StreamSocket *socket)";
+	// write to handler header file
+	fprintf(additionalTypeHeader, "%s;\n", readArrayPrototype.c_str());
+	fprintf(additionalTypeHeader, "%s;\n", sendArrayPrototype.c_str());
+	// write to handler function file
+	string readFunction = readArrayPrototype + "{\n\t";
+	string sendFunction = sendArrayPrototype + "{\n\t";
+
+	TypeDeclaration* temp = typep;
+
+
+	fclose(additionalTypeHeader);
+	fclose(additionalTypeFunc);
+}
+
 string
 buildSendFunction(string sendFunctionName, string arg_or_member, string socket) {
 	string sendFunction = sendFunctionName + "(";
@@ -163,16 +196,43 @@ buildReadFunction (string readFunctionName, string socket){
 	return readFunction;
 }
 
+string
+buildArrayFunctionType (TypeDeclaration* typep) {
+	string tyName;
+	TypeDeclaration* temp;
+	while (temp -> isArray()) {
+		int bound = temp -> getArrayBound();
+		tyName += "_" + to_string(bound);
+	}
+	tyName = temp.getName() + tyName;
+	return tyName;
+}
+
+string
+buildArrayArgType (TypeDeclaration* typep) {
+	string tyName;
+	TypeDeclaration* temp;
+	while (temp -> isArray()) {
+		int bound = temp -> getArrayBound();
+		tyName += "[" + to_string(bound) + "]";
+	}
+	tyName = temp.getName() + tyName;
+	return tyName;
+}
+
 string 
 getSendFunctionName (TypeDeclaration* typep) {
 	string sendFunctionName = "send";
 	string tyName = typep -> getName();
 	if (typep -> isStruct()) {
-		sendFunctionName += "Struct" + tyName;
+		sendFunctionName += "Struct_" + tyName;
+	} else if (typep -> isArray()) {
+		tyName = buildArrayFunctionType(typep);
+		sendFunctionName += "Array_" + tyName;
 	} else {
 		sendFunctionName += tyName + "Type";
 	}
-	return tyName;
+	return sendFunctionName;
 }
 
 string 
@@ -180,9 +240,12 @@ getReadFunctionName (TypeDeclaration* typep) {
 	string readFunctionName = "read";
 	string tyName = typep -> getName();
 	if (typep -> isStruct()) {
-		readFunctionName += "Struct" + tyName;
+		readFunctionName += "Struct_" + tyName;
+	} else if (typep -> isArray()) {
+		tyName = buildArrayFunctionType(typep);
+		readFunctionName += "Array_" + tyName;
 	} else {
 		readFunctionName += tyName + "Type";
 	}
-	return tyName;
+	return readFunctionName;
 }
