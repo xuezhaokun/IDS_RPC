@@ -173,13 +173,38 @@ arrayTypeHandler (TypeDeclaration* typep) {
 	string sendFunction = sendArrayPrototype + "{\n\t";
 
 	TypeDeclaration* temp = typep;
+	int loop_counter = 0;
+	string readItemIter = "";
+	string sendItemIter = "";
 
 	while (temp -> isArray()) {
 		int bound = temp -> getArrayBound();
 		// NEEDS TO DO, BUILD FOR LOOP
-		temp = temp -> getArrayMemberType();
-	}
+		int iterVar = "i_" + to_string(loop_counter);
+		readFunction = readFunction + "for(int " + to_string(iterVar) + 
+						" = 0; " + to_string(iterVar) + " < " + to_string(bound) + 
+						"; " + to_string(iterVar) + "++){\n\t";
 
+		sendFunction = sendFunction + "for(int " + to_string(iterVar) + 
+						" = 0; " + to_string(iterVar) + " < " + to_string(bound) + 
+						"; " + to_string(iterVar) + "++){\n\t";
+		readItemIter = readItemIter + "[" + to_string(iterVar) + "]";
+		sendItemIter = sendItemIter + "[" + to_string(iterVar) + "]";
+		temp = temp -> getArrayMemberType();
+		loop_counter++;
+	}
+	readItemIter = "readArray" + readItemIter;
+	sendItemIter = "sendArray" + sendItemIter;
+
+	readFunction = readFunction + readItemIter + " = " + buildReadFunction(readFunctionName, "socket");
+	sendFunction = sendFunction + buildSendFunction(sendFunctionName, sendItemIter, "socket");
+
+	readFunction = readFunction + "}\n";
+	sendFunction = sendFunction + "}\n";
+
+	fprintf(additionalTypeFunc, "%s;\n", readFunction.c_str());
+	fprintf(additionalTypeFunc, "%s;\n", sendFunction.c_str());
+	
 	fclose(additionalTypeHeader);
 	fclose(additionalTypeFunc);
 }

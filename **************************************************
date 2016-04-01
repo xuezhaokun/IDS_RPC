@@ -1,0 +1,75 @@
+********************************************************
+              File: structs.idl                          
+********************************************************
+
+Parsing Declarations(structs.idl)
+Done Parsing Declarations
+
+*------------------------------------------------------*
+|                    TYPES                             |
+*------------------------------------------------------*
+
+
+Number of types=9
+
+Type Name: Person  STRUCT  Number of members: 3
+{
+   string  firstname
+   string  lastname
+   int  age
+}
+
+Type Name: StructWithArrays  STRUCT  Number of members: 2
+{
+   int  aNumber
+   __Person[10]  people
+}
+
+Type Name: ThreePeople  STRUCT  Number of members: 3
+{
+   Person  p1
+   Person  p2
+   Person  p3
+}
+
+Type Name: __Person[10]
+
+Type Name: float
+
+Type Name: int
+
+Type Name: rectangle  STRUCT  Number of members: 2
+{
+   int  x
+   int  y
+}
+
+Type Name: string
+
+Type Name: void
+
+
+*------------------------------------------------------*
+|                   FUNCTIONS                          |
+*------------------------------------------------------*
+
+
+Number of functions=2
+
+Function name: area
+  Return type: int
+
+  Number of arguments: 1
+
+  ARGUMENT: name=r type=rectangle
+
+
+
+Function name: findPerson
+  Return type: Person
+
+  Number of arguments: 1
+
+  ARGUMENT: name=tp type=ThreePeople
+
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAXrY7u+Ae7tCTyyK7j1rNww==
