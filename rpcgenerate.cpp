@@ -107,6 +107,7 @@ fileheaders(string fileBasename) {
     return header;
 }
 
+// handle struct
 void
 structTypeHandler (TypeDeclaration* typep) {
 	unsigned memberNum;
@@ -152,7 +153,7 @@ structTypeHandler (TypeDeclaration* typep) {
 	fclose(additionalTypeFunc);
 }
 
-
+// handle array type
 void 
 arrayTypeHandler (TypeDeclaration* typep) {
 	unsigned memberNum;
