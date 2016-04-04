@@ -53,9 +53,6 @@ main(int argc, char const *argv[])
     };
 
   	for (argnum = 1; argnum < argc; argnum ++) {
-    	//string fileBasename = getFileBasename(argv[argnum]);
-    	//cout << "basename is " << fileBasename << endl;
-    	//cout << "commonheader is " << fileheaders(fileBasename) << endl;
     
 		//
 		// Open the file
