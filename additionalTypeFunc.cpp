@@ -43,12 +43,12 @@ ThreePeople readStruct_ThreePeople(C150StreamSocket *socket){
 
 void readArray_Person_10(Person[10] readArray, C150StreamSocket *socket){
 	for(int i_0 = 0; i_0 < 10; i_0++){
-		readArray[i_0] = readArray_Person_10(socket);
+		readArray[i_0] = readStruct_Person(socket);
 	}
 }
 void sendArray_Person_10(Person[10] sendArray, C150StreamSocket *socket){
 	for(int i_0 = 0; i_0 < 10; i_0++){
-	sendArray_Person_10(sendArray[i_0], socket);
+		sendStruct_Person(sendArray[i_0], socket);
 	}
 }
 void sendStruct_rectangle(rectangle structData, C150StreamSocket *socket){

@@ -171,7 +171,7 @@ arrayTypeHandler (FILE *additionalTypeHeader, FILE *additionalTypeFunc, TypeDecl
 
 	while (temp -> isArray()) {
 		int bound = temp -> getArrayBound();
-		// NEEDS TO DO, BUILD FOR LOOP
+
 		string iterVar = "i_" + to_string(loop_counter);
 		readFunction = readFunction + "for(int " + iterVar + 
 						" = 0; " + iterVar + " < " + to_string(bound) + 
@@ -179,7 +179,7 @@ arrayTypeHandler (FILE *additionalTypeHeader, FILE *additionalTypeFunc, TypeDecl
 
 		sendFunction = sendFunction + "for(int " + iterVar + 
 						" = 0; " + iterVar + " < " + to_string(bound) + 
-						"; " + iterVar + "++){\n\t";
+						"; " + iterVar + "++){\n\t\t";
 		readItemIter = readItemIter + "[" + iterVar + "]";
 		sendItemIter = sendItemIter + "[" + iterVar + "]";
 		temp = temp -> getArrayMemberType();
@@ -188,8 +188,11 @@ arrayTypeHandler (FILE *additionalTypeHeader, FILE *additionalTypeFunc, TypeDecl
 	readItemIter = "readArray" + readItemIter;
 	sendItemIter = "sendArray" + sendItemIter;
 
-	readFunction = readFunction + readItemIter + " = " + buildReadFunction(readFunctionName, "socket");
-	sendFunction = sendFunction + buildSendFunction(sendFunctionName, sendItemIter, "socket");
+	string readArrayElementName = getReadFunctionName(temp);
+	string sendArrayElementName = getSendFunctionName(temp);
+
+	readFunction = readFunction + readItemIter + " = " + buildReadFunction(readArrayElementName, "socket");
+	sendFunction = sendFunction + buildSendFunction(sendArrayElementName, sendItemIter, "socket");
 
 	readFunction = readFunction + "}\n";
 	sendFunction = sendFunction + "}\n";
