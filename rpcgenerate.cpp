@@ -60,52 +60,6 @@ main(int argc, char const *argv[])
     return 0;
 }
 
-string 
-getFileBasename (const char *filename){
-	string stringFilename(filename);
- 	vector<string> tokens = split(stringFilename, '.');
- 	if(tokens.at(1) != "idl"){
- 		fprintf(stderr, "Input file type should be .idl, wrong file type: %s\n", filename);
-    	exit (0);
-    }
-	return tokens.at(0);
-}
-
-
-// REFERENCE from StackOverFlow
-vector<string> 
-&split(const string &s, char delim, vector<string> &elems) {
-    stringstream ss(s);
-    string item;
-    while (getline(ss, item, delim)) {
-        elems.push_back(item);
-    }
-    return elems;
-}
-vector<string> 
-split(const string &s, char delim) {
-    vector<string> elems;
-    split(s, delim, elems);
-    return elems;
-}
-
-string 
-fileheaders(string fileBasename) {
-    string header = "";
-    header.append("#include \"c150debug.h\"\n")
-          .append("#include \"rpcproxyhelper.h\"\n")
-       	  .append("#include \"atomicSocketUtils.h\"\n") 
-          .append("#include <fstream>\n")
-          .append("#include <cstdio>\n")
-       	  .append("#include <cstring>\n")
-       	  .append("#include <string>\n")
-       	  .append("#include <fstream>\n")
-       	  .append("#include <arpa/inet.h>\n") 
-       	  .append("using namespace C150NETWORK;\n")
-       	  .append("using namespace std;\n")
-       	  .append("#include \"" + fileBasename + ".idl\"\n");
-    return header;
-}
 
 // handle struct
 void
@@ -281,4 +235,50 @@ getReadFunctionName (TypeDeclaration* typep) {
 		readFunctionName += tyName + "Type";
 	}
 	return readFunctionName;
+}
+
+string 
+getFileBasename (const char *filename){
+	string stringFilename(filename);
+ 	vector<string> tokens = split(stringFilename, '.');
+ 	if(tokens.at(1) != "idl"){
+ 		fprintf(stderr, "Input file type should be .idl, wrong file type: %s\n", filename);
+    	exit (0);
+    }
+	return tokens.at(0);
+}
+
+// REFERENCE from StackOverFlow
+vector<string> 
+&split(const string &s, char delim, vector<string> &elems) {
+    stringstream ss(s);
+    string item;
+    while (getline(ss, item, delim)) {
+        elems.push_back(item);
+    }
+    return elems;
+}
+vector<string> 
+split(const string &s, char delim) {
+    vector<string> elems;
+    split(s, delim, elems);
+    return elems;
+}
+
+string 
+fileheaders(string fileBasename) {
+    string header = "";
+    header.append("#include \"c150debug.h\"\n")
+          .append("#include \"rpcproxyhelper.h\"\n")
+       	  .append("#include \"atomicSocketUtils.h\"\n") 
+          .append("#include <fstream>\n")
+          .append("#include <cstdio>\n")
+       	  .append("#include <cstring>\n")
+       	  .append("#include <string>\n")
+       	  .append("#include <fstream>\n")
+       	  .append("#include <arpa/inet.h>\n") 
+       	  .append("using namespace C150NETWORK;\n")
+       	  .append("using namespace std;\n")
+       	  .append("#include \"" + fileBasename + ".idl\"\n");
+    return header;
 }
