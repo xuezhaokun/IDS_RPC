@@ -101,15 +101,15 @@ floatarithmeticclient: floatarithmeticclient.o rpcproxyhelper.o basicTypeHandler
 floatarithmeticserver: floatarithmetic.stub.o rpcserver.o rpcstubhelper.o basicTypeHandler.o floatarithmetic.o  $(C150AR) $(C150IDSRPCAR)  $(INCLUDES)
 	$(CPP) -o floatarithmeticserver rpcserver.o floatarithmetic.stub.o basicTypeHandler.o floatarithmetic.o rpcstubhelper.o $(C150AR) $(C150IDSRPCAR) 
 
-structsclient: structsclient.o rpcproxyhelper.o basicTypeHandler.o structs.proxy.o  $(C150AR) $(C150IDSRPCAR) $(INCLUDES)
-	$(CPP) -o structsclient structsclient.o rpcproxyhelper.o basicTypeHandler.o structs.proxy.o  $(C150AR) $(C150IDSRPCAR) 
+structsclient: structsclient.o rpcproxyhelper.o basicTypeHandler.o additionalTypeHandler.o structs.proxy.o  $(C150AR) $(C150IDSRPCAR) $(INCLUDES)
+	$(CPP) -o structsclient structsclient.o rpcproxyhelper.o basicTypeHandler.o additionalTypeHandler.o structs.proxy.o  $(C150AR) $(C150IDSRPCAR) 
 
 # The following is NOT a mistake. The main program for any of the rpc servers
 # is rpcserver.o.  This way, we can make a different one for each set 
 # of functions, by linking the right specific stugs (in this case
 # simplefunction.stub.o)
-structsserver: structs.stub.o rpcserver.o rpcstubhelper.o basicTypeHandler.o structs.o  $(C150AR) $(C150IDSRPCAR) $(INCLUDES)
-	$(CPP) -o structsserver rpcserver.o structs.stub.o basicTypeHandler.o structs.o rpcstubhelper.o $(C150AR) $(C150IDSRPCAR) 
+structsserver: structs.stub.o rpcserver.o rpcstubhelper.o basicTypeHandler.o additionalTypeHandler.o structs.o  $(C150AR) $(C150IDSRPCAR) $(INCLUDES)
+	$(CPP) -o structsserver rpcserver.o structs.stub.o basicTypeHandler.o additionalTypeHandler.o structs.o rpcstubhelper.o $(C150AR) $(C150IDSRPCAR) 
 
 
 ########################################################################

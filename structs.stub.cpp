@@ -50,6 +50,7 @@ using namespace std;
 using namespace C150NETWORK;  // for all the comp150 utilities 
 
 #include "structs.idl"
+#include "additionalTypeHandler.h"
 void getFunctionNamefromStream();
 
 // ======================================================================
@@ -85,9 +86,10 @@ void __findPerson(ThreePeople tp) {
   cout << "calling __findPerson" << endl;
   Person result = findPerson(tp);
   cout << "result firstname is " << result.age << endl;
-  sendstringType(RPCSTUBSOCKET, result.firstname);
+  /*sendstringType(RPCSTUBSOCKET, result.firstname);
   sendstringType(RPCSTUBSOCKET, result.lastname);
-  sendintType(RPCSTUBSOCKET, result.age);
+  sendintType(RPCSTUBSOCKET, result.age);*/
+  sendStruct_Person(RPCSTUBSOCKET, result);
 }
 
 void __area(rectangle r) {
@@ -158,40 +160,41 @@ void dispatchFunction() {
     if (strcmp(functionName.c_str(), "findPerson") == 0) {
       cout << "received findPerson request" << endl;
       ThreePeople tp;
-      Person p1;
+      /*Person p1;
       Person p2;
-      Person p3;
-
-      p1.firstname = readstringType(RPCSTUBSOCKET);
-      cout << "p1 firstname: " << p1.firstname << endl;
-      p1.lastname = readstringType(RPCSTUBSOCKET);
-      cout << "p1 lastname: " << p1.lastname << endl;
-      p1.age = readintType(RPCSTUBSOCKET);
-      cout << "p1 age: " << p1.age << endl;
+      Person p3;*/
+      tp = readStruct_ThreePeople(RPCSTUBSOCKET);
+      //p1.firstname = readstringType(RPCSTUBSOCKET);
+      cout << "p1 firstname: " << tp.p1.firstname << endl;
+      //p1.lastname = readstringType(RPCSTUBSOCKET);
+      cout << "p1 lastname: " << tp.p1.lastname << endl;
+      //p1.age = readintType(RPCSTUBSOCKET);
+      cout << "p1 age: " << tp.p1.age << endl;
       
-      p2.firstname = readstringType(RPCSTUBSOCKET);
-      cout << "p2 firstname: " << p2.firstname << endl;
-      p2.lastname = readstringType(RPCSTUBSOCKET);
-      cout << "p2 lastname: " << p2.lastname << endl;
-      p2.age = readintType(RPCSTUBSOCKET);
-      cout << "p2 age: " << p2.age << endl;
+      //p2.firstname = readstringType(RPCSTUBSOCKET);
+      cout << "p2 firstname: " << tp.p2.firstname << endl;
+      //p2.lastname = readstringType(RPCSTUBSOCKET);
+      cout << "p2 lastname: " << tp.p2.lastname << endl;
+      //p2.age = readintType(RPCSTUBSOCKET);
+      cout << "p2 age: " << tp.p2.age << endl;
 
-      p3.firstname = readstringType(RPCSTUBSOCKET);
-      cout << "p3 firstname: " << p3.firstname << endl;
-      p3.lastname = readstringType(RPCSTUBSOCKET);
-      cout << "p3 lastname: " << p3.lastname << endl;
-      p3.age = readintType(RPCSTUBSOCKET);
-      cout << "p3 age: " << p3.age << endl;
+      //p3.firstname = readstringType(RPCSTUBSOCKET);
+      cout << "p3 firstname: " << tp.p3.firstname << endl;
+      //p3.lastname = readstringType(RPCSTUBSOCKET);
+      cout << "p3 lastname: " << tp.p3.lastname << endl;
+      //p3.age = readintType(RPCSTUBSOCKET);
+      cout << "p3 age: " << tp.p3.age << endl;
 
-      tp.p1 = p1;
-      tp.p2 = p2;
-      tp.p3 = p3;
+      //tp.p1 = p1;
+      //tp.p2 = p2;
+      //tp.p3 = p3;
 
       __findPerson(tp);
     } else if (strcmp(functionName.c_str(), "area") == 0) {
       rectangle r;
-      r.x = readintType(RPCSTUBSOCKET);
-      r.y = readintType(RPCSTUBSOCKET);
+      /*r.x = readintType(RPCSTUBSOCKET);
+      r.y = readintType(RPCSTUBSOCKET);*/
+      r = readStruct_rectangle(RPCSTUBSOCKET);
 
       __area(r);
     } else {

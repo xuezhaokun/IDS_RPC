@@ -67,12 +67,12 @@ main(int argc, char const *argv[])
 
 		Declarations parseTree(idlFile);
 
-		string headerFileName = "additionalTypeHeader.h";
-		string functionFileName = "additionalTypeFunc.cpp";
+		string headerFileName = "additionalTypeHandler.h";
+		string functionFileName = "additionalTypeHandler.cpp";
 
 		string fileBasename = getFileBasename(argv[argnum]);
 		string functionFileHeader = fileheaders(fileBasename);
-		functionFileHeader = "#include \"" + headerFileName + "\"\n" + functionFileHeader;
+		functionFileHeader = functionFileHeader + "#include \"" + headerFileName + "\"\n";
 		string headFileheaders = headerFileheaders();
 
 		FILE* additionalTypeHeader = fopen(headerFileName.c_str(), "w+");
@@ -122,7 +122,7 @@ structTypeHandler (FILE *additionalTypeHeader, FILE *additionalTypeFunc, TypeDec
 	string sendFunctionName = getSendFunctionName(typep);
 
 	string readStructPrototype = tyName + " " + readFunctionName + "(C150StreamSocket *socket)";
-	string sendStructPrototype = "void " + sendFunctionName + "(" + tyName + " structData, C150StreamSocket *socket)";
+	string sendStructPrototype = "void " + sendFunctionName + "(C150StreamSocket *socket, " + tyName + " structData)";
 	// write to handler header file
 	fprintf(additionalTypeHeader, "%s;\n", readStructPrototype.c_str());
 	fprintf(additionalTypeHeader, "%s;\n", sendStructPrototype.c_str());
@@ -169,8 +169,8 @@ arrayTypeHandler (FILE *additionalTypeHeader, FILE *additionalTypeFunc, TypeDecl
 	string sendFunctionName = getSendFunctionName(typep);
 	string arrayArg = buildArrayArgType(typep);
 
-	string readArrayPrototype = "void " + readFunctionName + "(" + arrayArg + " readArray, C150StreamSocket *socket)";
-	string sendArrayPrototype = "void " + sendFunctionName + "(" + arrayArg + " sendArray, C150StreamSocket *socket)";
+	string readArrayPrototype = "void " + readFunctionName + "(C150StreamSocket *socket, " + arrayArg + " readArray)";
+	string sendArrayPrototype = "void " + sendFunctionName + "(C150StreamSocket *socket, " + arrayArg + " sendArray)";
 	// write to handler header file
 	fprintf(additionalTypeHeader, "%s;\n", readArrayPrototype.c_str());
 	fprintf(additionalTypeHeader, "%s;\n", sendArrayPrototype.c_str());
@@ -224,7 +224,7 @@ buildSendFunction(string sendFunctionName, string arg_or_member, string socket) 
 	if (sendFunction == "sendvoidType") {
 		sendFunction += socket + ");\n\t";
 	} else {
-		sendFunction += arg_or_member + ", " + socket + ");\n\t";
+		sendFunction += socket + ", " + arg_or_member + ");\n\t";
 	}
 	return sendFunction;
 }

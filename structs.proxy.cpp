@@ -28,7 +28,6 @@
 
 #include "rpcproxyhelper.h"
 #include "basicTypeHandler.h"
-
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -38,6 +37,7 @@
 using namespace std; 
 using namespace C150NETWORK;  // for all the comp150 utilities 
 #include "structs.idl"
+#include "additionalTypeHandler.h"
 
 Person findPerson(ThreePeople tp) {
   //
@@ -45,6 +45,8 @@ Person findPerson(ThreePeople tp) {
   //
   c150debug->printf(C150RPCDEBUG,"structs.proxy.cpp: add() invoked");
   sendFunctionName(RPCPROXYSOCKET, "findPerson");
+  
+  /*
   // send p1
   sendstringType(RPCPROXYSOCKET, tp.p1.firstname);
   sendstringType(RPCPROXYSOCKET, tp.p1.lastname);
@@ -57,6 +59,10 @@ Person findPerson(ThreePeople tp) {
   sendstringType(RPCPROXYSOCKET, tp.p3.firstname);
   sendstringType(RPCPROXYSOCKET, tp.p3.lastname);
   sendintType(RPCPROXYSOCKET, tp.p3.age);
+  */
+
+  sendStruct_ThreePeople(RPCPROXYSOCKET, tp);
+
   //
   // Read the response
   //
@@ -64,9 +70,10 @@ Person findPerson(ThreePeople tp) {
 
   c150debug->printf(C150RPCDEBUG,"structs.proxy.cpp: add() successful return from remote call");
   Person result;
-  result.firstname = readstringType(RPCPROXYSOCKET);
+  /*result.firstname = readstringType(RPCPROXYSOCKET);
   result.lastname = readstringType(RPCPROXYSOCKET);
-  result.age = readintType(RPCPROXYSOCKET);
+  result.age = readintType(RPCPROXYSOCKET);*/
+  result = readStruct_Person(RPCPROXYSOCKET);
   //cout << ""
   return result;
   //return readFloatType(RPCPROXYSOCKET);
@@ -79,9 +86,9 @@ int area(rectangle r) {
   //
   c150debug->printf(C150RPCDEBUG,"structs.proxy.cpp: subtract() invoked");
   sendFunctionName(RPCPROXYSOCKET, "area");
-  sendintType(RPCPROXYSOCKET, r.x);
-  sendintType(RPCPROXYSOCKET, r.y);
- 
+  /*sendintType(RPCPROXYSOCKET, r.x);
+  sendintType(RPCPROXYSOCKET, r.y);*/
+  sendStruct_rectangle(RPCPROXYSOCKET, r);
   //
   // Read the response
   //
