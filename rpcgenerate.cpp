@@ -36,6 +36,8 @@ vector<string>
 split(const string &s, char delim);
 string 
 fileheaders(string fileBasename);
+string
+headerFileheaders ();
 
 int 
 main(int argc, char const *argv[])
@@ -67,9 +69,24 @@ main(int argc, char const *argv[])
 		}
 
 		Declarations parseTree(idlFile);
-		FILE* additionalTypeHeader = fopen("additionalTypeHeader.h", "w+");
-		FILE* additionalTypeFunc = fopen("additionalTypeFunc.cpp", "w+");
+
+		string headerFileName = "additionalTypeHeader.h";
+		string functionFileName = "additionalTypeFunc.cpp";
+
+		string fileBasename = getFileBasename(argv[argnum]);
+		string functionFileHeader = fileheaders(fileBasename);
+		functionFileHeader = "#include \"" + headerFileName + "\"\n" + functionFileHeader;
+		string headFileheaders = headerFileheaders();
+
+		FILE* additionalTypeHeader = fopen(headerFileName.c_str(), "w+");
+		FILE* additionalTypeFunc = fopen(functionFileName.c_str(), "w+");
+
+		fprintf(additionalTypeHeader, "%s\n", headFileheaders.c_str());
+		fprintf(additionalTypeFunc, "%s\n", functionFileHeader.c_str());
+
 		generateAdditionalTypeFiles(additionalTypeHeader, additionalTypeFunc, parseTree);
+		
+		fprintf(additionalTypeHeader, "%s\n", "#endif");
 		fclose(additionalTypeHeader);
 		fclose(additionalTypeFunc);
 
@@ -278,7 +295,7 @@ getReadFunctionName (TypeDeclaration* typep) {
 }
 
 string 
-getFileBasename (const char *filename){
+getFileBasename (const char *filename) {
 	string stringFilename(filename);
  	vector<string> tokens = split(stringFilename, '.');
  	if(tokens.at(1) != "idl"){
@@ -306,11 +323,11 @@ split(const string &s, char delim) {
 }
 
 string 
-fileheaders(string fileBasename) {
+fileheaders (string fileBasename) {
     string header = "";
     header.append("#include \"c150debug.h\"\n")
           .append("#include \"rpcproxyhelper.h\"\n")
-       	  .append("#include \"atomicSocketUtils.h\"\n") 
+       	  .append("#include \"basicTypeHandler.h\"\n") 
           .append("#include <fstream>\n")
           .append("#include <cstdio>\n")
        	  .append("#include <cstring>\n")
@@ -320,5 +337,17 @@ fileheaders(string fileBasename) {
        	  .append("using namespace C150NETWORK;\n")
        	  .append("using namespace std;\n")
        	  .append("#include \"" + fileBasename + ".idl\"\n");
+    return header;
+}
+
+string
+headerFileheaders () {
+	string header = "";
+	header.append("#ifndef __ADDITIONALTYPE_H_INCLUDED__\n")
+		  .append("#define __ADDITIONALTYPE_H_INCLUDED__\n")
+		  .append("#include <string>\n")
+		  .append("#include \"c150streamsocket.h\"\n")
+       	  .append("using namespace C150NETWORK;\n")
+       	  .append("using namespace std;\n");
     return header;
 }

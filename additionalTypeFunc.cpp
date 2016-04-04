@@ -1,3 +1,17 @@
+#include "additionalTypeHeader.h"
+#include "c150debug.h"
+#include "rpcproxyhelper.h"
+#include "basicTypeHandler.h"
+#include <fstream>
+#include <cstdio>
+#include <cstring>
+#include <string>
+#include <fstream>
+#include <arpa/inet.h>
+using namespace C150NETWORK;
+using namespace std;
+#include "structs.idl"
+
 void sendStruct_Person(Person structData, C150StreamSocket *socket){
 	sendstringType(structData.firstname, socket);
 	sendstringType(structData.lastname, socket);

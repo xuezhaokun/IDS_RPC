@@ -1,5 +1,5 @@
-#ifndef __ATOMICSOCKETUTILS_H__
-#define __ATOMICSOCKETUTILS_H__
+#ifndef __BASICTYPEHANDLER_H_INCLUDED__
+#define __BASICTYPEHANDLER_H_INCLUDED__
 
 #include <string>
 #include "c150streamsocket.h"
