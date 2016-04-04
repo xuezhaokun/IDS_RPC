@@ -46,17 +46,17 @@ Person findPerson(ThreePeople tp) {
   c150debug->printf(C150RPCDEBUG,"structs.proxy.cpp: add() invoked");
   sendFunctionName(RPCPROXYSOCKET, "findPerson");
   // send p1
-  sendStringType(RPCPROXYSOCKET, tp.p1.firstname);
-  sendStringType(RPCPROXYSOCKET, tp.p1.lastname);
-  sendIntType(RPCPROXYSOCKET, tp.p1.age);
+  sendstringType(RPCPROXYSOCKET, tp.p1.firstname);
+  sendstringType(RPCPROXYSOCKET, tp.p1.lastname);
+  sendintType(RPCPROXYSOCKET, tp.p1.age);
   // send p2
-  sendStringType(RPCPROXYSOCKET, tp.p2.firstname);
-  sendStringType(RPCPROXYSOCKET, tp.p2.lastname);
-  sendIntType(RPCPROXYSOCKET, tp.p2.age);
+  sendstringType(RPCPROXYSOCKET, tp.p2.firstname);
+  sendstringType(RPCPROXYSOCKET, tp.p2.lastname);
+  sendintType(RPCPROXYSOCKET, tp.p2.age);
   // send p3
-  sendStringType(RPCPROXYSOCKET, tp.p3.firstname);
-  sendStringType(RPCPROXYSOCKET, tp.p3.lastname);
-  sendIntType(RPCPROXYSOCKET, tp.p3.age);
+  sendstringType(RPCPROXYSOCKET, tp.p3.firstname);
+  sendstringType(RPCPROXYSOCKET, tp.p3.lastname);
+  sendintType(RPCPROXYSOCKET, tp.p3.age);
   //
   // Read the response
   //
@@ -64,9 +64,9 @@ Person findPerson(ThreePeople tp) {
 
   c150debug->printf(C150RPCDEBUG,"structs.proxy.cpp: add() successful return from remote call");
   Person result;
-  result.firstname = readStringType(RPCPROXYSOCKET);
-  result.lastname = readStringType(RPCPROXYSOCKET);
-  result.age = readIntType(RPCPROXYSOCKET);
+  result.firstname = readstringType(RPCPROXYSOCKET);
+  result.lastname = readstringType(RPCPROXYSOCKET);
+  result.age = readintType(RPCPROXYSOCKET);
   //cout << ""
   return result;
   //return readFloatType(RPCPROXYSOCKET);
@@ -79,8 +79,8 @@ int area(rectangle r) {
   //
   c150debug->printf(C150RPCDEBUG,"structs.proxy.cpp: subtract() invoked");
   sendFunctionName(RPCPROXYSOCKET, "area");
-  sendIntType(RPCPROXYSOCKET, r.x);
-  sendIntType(RPCPROXYSOCKET, r.y);
+  sendintType(RPCPROXYSOCKET, r.x);
+  sendintType(RPCPROXYSOCKET, r.y);
  
   //
   // Read the response
@@ -89,5 +89,5 @@ int area(rectangle r) {
 
   c150debug->printf(C150RPCDEBUG,"structs.proxy.cpp: subtract() successful return from remote call");
 
-  return readIntType(RPCPROXYSOCKET);
+  return readintType(RPCPROXYSOCKET);
 }

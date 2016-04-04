@@ -11,11 +11,11 @@ using namespace std;
 
 void sendstringType (C150StreamSocket *socket, string stringData) {
   int length = stringData.length();
-  sendIntType(socket, length);
+  sendintType(socket, length);
   socket->write(stringData.c_str(), length);
 }
 string readstringType (C150StreamSocket *socket) {
-  int length = readIntType(socket);
+  int length = readintType(socket);
   char readBuffer[length];
   socket->read(readBuffer, length);
   readBuffer[length] = '\0';
@@ -64,11 +64,11 @@ float readfloatType (C150StreamSocket *socket) {
 }
 
 void sendvoidType (C150StreamSocket *socket) {
-  sendIntType(socket, 0);
+  sendintType(socket, 0);
 }
 
 void readvoidType (C150StreamSocket *socket) {
-  readIntType(socket);
+  readintType(socket);
 }
 
 void sendFunctionName (C150StreamSocket *socket, const char  *functionName) {

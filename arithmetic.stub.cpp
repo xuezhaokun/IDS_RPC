@@ -82,7 +82,7 @@ int __add(int x, int y) {
   //
   c150debug->printf(C150RPCDEBUG,"arithmetic.stub.cpp: returned from  add() -- responding to client");
   int result = add(x, y);
-  sendIntType(RPCSTUBSOCKET, result);
+  sendintType(RPCSTUBSOCKET, result);
   return result;
 }
 
@@ -101,7 +101,7 @@ int __subtract(int x, int y) {
   //
   c150debug->printf(C150RPCDEBUG,"arithmetic.stub.cpp: returned from  subtract() -- responding to client");
   int result = subtract(x, y);
-  sendIntType(RPCSTUBSOCKET, result);
+  sendintType(RPCSTUBSOCKET, result);
   return result;
 }
 
@@ -122,7 +122,7 @@ int __multiply(int x, int y) {
   //
   c150debug->printf(C150RPCDEBUG,"arithmetic.stub.cpp: returned from  multiply() -- responding to client");
   int result = multiply(x, y);
-  sendIntType(RPCSTUBSOCKET, result);
+  sendintType(RPCSTUBSOCKET, result);
   return result;
 }
 
@@ -144,7 +144,7 @@ int __divide(int x, int y) {
   //
   c150debug->printf(C150RPCDEBUG,"arithmetic.stub.cpp: returned from  divide() -- responding to client");
   int result = divide(x, y);
-  sendIntType(RPCSTUBSOCKET, result);
+  sendintType(RPCSTUBSOCKET, result);
   return result;
 }
 
@@ -194,23 +194,23 @@ void dispatchFunction() {
   if (!RPCSTUBSOCKET-> eof()) {
     //string functionName = readFunctionName(RPCSTUBSOCKET, functionNameBuffer);
     if (strcmp(functionName.c_str(), "add") == 0) {
-      int host_int_x = readIntType(RPCSTUBSOCKET);
-      int host_int_y = readIntType(RPCSTUBSOCKET);
+      int host_int_x = readintType(RPCSTUBSOCKET);
+      int host_int_y = readintType(RPCSTUBSOCKET);
 
       __add(host_int_x, host_int_y);
     } else if (strcmp(functionName.c_str(), "subtract") == 0) {
-      int host_int_x = readIntType(RPCSTUBSOCKET);
-      int host_int_y = readIntType(RPCSTUBSOCKET);
+      int host_int_x = readintType(RPCSTUBSOCKET);
+      int host_int_y = readintType(RPCSTUBSOCKET);
 
       __subtract(host_int_x, host_int_y);
     } else if (strcmp(functionName.c_str(), "multiply") == 0) {
-      int host_int_x = readIntType(RPCSTUBSOCKET);
-      int host_int_y = readIntType(RPCSTUBSOCKET);
+      int host_int_x = readintType(RPCSTUBSOCKET);
+      int host_int_y = readintType(RPCSTUBSOCKET);
 
       __multiply(host_int_x, host_int_y);
     } else if (strcmp(functionName.c_str(), "divide") == 0) {
-      int host_int_x = readIntType(RPCSTUBSOCKET);
-      int host_int_y = readIntType(RPCSTUBSOCKET);
+      int host_int_x = readintType(RPCSTUBSOCKET);
+      int host_int_y = readintType(RPCSTUBSOCKET);
 
       __divide(host_int_x, host_int_y);
     } else {

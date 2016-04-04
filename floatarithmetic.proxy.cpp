@@ -43,8 +43,8 @@ float add(float x, float y) {
   //
   c150debug->printf(C150RPCDEBUG,"floatarithmetic.proxy.cpp: add() invoked");
   sendFunctionName(RPCPROXYSOCKET, "add");
-  sendFloatType(RPCPROXYSOCKET, x);
-  sendFloatType(RPCPROXYSOCKET, y);
+  sendfloatType(RPCPROXYSOCKET, x);
+  sendfloatType(RPCPROXYSOCKET, y);
  
   //
   // Read the response
@@ -53,7 +53,7 @@ float add(float x, float y) {
 
   c150debug->printf(C150RPCDEBUG,"floatarithmetic.proxy.cpp: add() successful return from remote call");
 
-  return readFloatType(RPCPROXYSOCKET);
+  return readfloatType(RPCPROXYSOCKET);
 }
 
 
@@ -63,8 +63,8 @@ float subtract(float x, float y) {
   //
   c150debug->printf(C150RPCDEBUG,"floatarithmetic.proxy.cpp: subtract() invoked");
   sendFunctionName(RPCPROXYSOCKET, "subtract");
-  sendFloatType(RPCPROXYSOCKET, x);
-  sendFloatType(RPCPROXYSOCKET, y);
+  sendfloatType(RPCPROXYSOCKET, x);
+  sendfloatType(RPCPROXYSOCKET, y);
  
   //
   // Read the response
@@ -73,7 +73,7 @@ float subtract(float x, float y) {
 
   c150debug->printf(C150RPCDEBUG,"floatarithmetic.proxy.cpp: subtract() successful return from remote call");
 
-  return readFloatType(RPCPROXYSOCKET);
+  return readfloatType(RPCPROXYSOCKET);
 }
 
 
@@ -83,8 +83,8 @@ float multiply(float x, float y) {
   //
   c150debug->printf(C150RPCDEBUG,"floatarithmetic.proxy.cpp: multiply() invoked");
   sendFunctionName(RPCPROXYSOCKET, "multiply");
-  sendFloatType(RPCPROXYSOCKET, x);
-  sendFloatType(RPCPROXYSOCKET, y);
+  sendfloatType(RPCPROXYSOCKET, x);
+  sendfloatType(RPCPROXYSOCKET, y);
  
   //
   // Read the response
@@ -93,7 +93,7 @@ float multiply(float x, float y) {
 
   c150debug->printf(C150RPCDEBUG,"floatarithmetic.proxy.cpp: multiply() successful return from remote call");
 
-  return readFloatType(RPCPROXYSOCKET);
+  return readfloatType(RPCPROXYSOCKET);
 }
 
 float divide(float x, float y){
@@ -102,8 +102,8 @@ float divide(float x, float y){
   //
   c150debug->printf(C150RPCDEBUG,"floatarithmetic.proxy.cpp: divide() invoked");
   sendFunctionName(RPCPROXYSOCKET, "divide");
-  sendFloatType(RPCPROXYSOCKET, x);
-  sendFloatType(RPCPROXYSOCKET, y);
+  sendfloatType(RPCPROXYSOCKET, x);
+  sendfloatType(RPCPROXYSOCKET, y);
  
   //
   // Read the response
@@ -112,6 +112,6 @@ float divide(float x, float y){
 
   c150debug->printf(C150RPCDEBUG,"floatarithmetic.proxy.cpp: divide() successful return from remote call");
 
-  return readFloatType(RPCPROXYSOCKET);
+  return readfloatType(RPCPROXYSOCKET);
 }
 

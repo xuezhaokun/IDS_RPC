@@ -43,8 +43,8 @@ int add(int x, int y) {
   //
   c150debug->printf(C150RPCDEBUG,"arithmetic.proxy.cpp: add() invoked");
   sendFunctionName(RPCPROXYSOCKET, "add");
-  sendIntType(RPCPROXYSOCKET, x);
-  sendIntType(RPCPROXYSOCKET, y);
+  sendintType(RPCPROXYSOCKET, x);
+  sendintType(RPCPROXYSOCKET, y);
   //
   // Read the response
   //
@@ -52,7 +52,7 @@ int add(int x, int y) {
   
   c150debug->printf(C150RPCDEBUG,"arithmetic.proxy.cpp: add() successful return from remote call");
 
-  return readIntType(RPCPROXYSOCKET);
+  return readintType(RPCPROXYSOCKET);
   
 }
 
@@ -63,8 +63,8 @@ int subtract(int x, int y) {
   //
   c150debug->printf(C150RPCDEBUG,"arithmetic.proxy.cpp: subtract() invoked");
   sendFunctionName(RPCPROXYSOCKET, "subtract");
-  sendIntType(RPCPROXYSOCKET, x);
-  sendIntType(RPCPROXYSOCKET, y);
+  sendintType(RPCPROXYSOCKET, x);
+  sendintType(RPCPROXYSOCKET, y);
   //
   // Read the response
   //
@@ -72,7 +72,7 @@ int subtract(int x, int y) {
   
   c150debug->printf(C150RPCDEBUG,"arithmetic.proxy.cpp: subtract() successful return from remote call");
 
-  return readIntType(RPCPROXYSOCKET);
+  return readintType(RPCPROXYSOCKET);
 }
 
 
@@ -82,8 +82,8 @@ int multiply(int x, int y) {
   //
   c150debug->printf(C150RPCDEBUG,"arithmetic.proxy.cpp: multiply() invoked");
   sendFunctionName(RPCPROXYSOCKET, "multiply");
-  sendIntType(RPCPROXYSOCKET, x);
-  sendIntType(RPCPROXYSOCKET, y);
+  sendintType(RPCPROXYSOCKET, x);
+  sendintType(RPCPROXYSOCKET, y);
   //
   // Read the response
   //
@@ -91,7 +91,7 @@ int multiply(int x, int y) {
   
   c150debug->printf(C150RPCDEBUG,"arithmetic.proxy.cpp: multiply() successful return from remote call");
 
-  return readIntType(RPCPROXYSOCKET);
+  return readintType(RPCPROXYSOCKET);
 
 }
 
@@ -101,8 +101,8 @@ int divide(int x, int y){
   //
   c150debug->printf(C150RPCDEBUG,"arithmetic.proxy.cpp: divide() invoked");
   sendFunctionName(RPCPROXYSOCKET, "divide");
-  sendIntType(RPCPROXYSOCKET, x);
-  sendIntType(RPCPROXYSOCKET, y);
+  sendintType(RPCPROXYSOCKET, x);
+  sendintType(RPCPROXYSOCKET, y);
   //
   // Read the response
   //
@@ -110,6 +110,6 @@ int divide(int x, int y){
   
   c150debug->printf(C150RPCDEBUG,"arithmetic.proxy.cpp: divide() successful return from remote call");
 
-  return readIntType(RPCPROXYSOCKET);
+  return readintType(RPCPROXYSOCKET);
 }
 

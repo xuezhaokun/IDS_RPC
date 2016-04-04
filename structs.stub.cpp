@@ -85,9 +85,9 @@ void __findPerson(ThreePeople tp) {
   cout << "calling __findPerson" << endl;
   Person result = findPerson(tp);
   cout << "result firstname is " << result.age << endl;
-  sendStringType(RPCSTUBSOCKET, result.firstname);
-  sendStringType(RPCSTUBSOCKET, result.lastname);
-  sendIntType(RPCSTUBSOCKET, result.age);
+  sendstringType(RPCSTUBSOCKET, result.firstname);
+  sendstringType(RPCSTUBSOCKET, result.lastname);
+  sendintType(RPCSTUBSOCKET, result.age);
 }
 
 void __area(rectangle r) {
@@ -105,7 +105,7 @@ void __area(rectangle r) {
   //
   c150debug->printf(C150RPCDEBUG,"structs.stub.cpp: returned from  area() -- responding to client");
   int result = area(r);
-  sendIntType(RPCSTUBSOCKET, result);
+  sendintType(RPCSTUBSOCKET, result);
   //return result;
 }
 
@@ -162,25 +162,25 @@ void dispatchFunction() {
       Person p2;
       Person p3;
 
-      p1.firstname = readStringType(RPCSTUBSOCKET);
+      p1.firstname = readstringType(RPCSTUBSOCKET);
       cout << "p1 firstname: " << p1.firstname << endl;
-      p1.lastname = readStringType(RPCSTUBSOCKET);
+      p1.lastname = readstringType(RPCSTUBSOCKET);
       cout << "p1 lastname: " << p1.lastname << endl;
-      p1.age = readIntType(RPCSTUBSOCKET);
+      p1.age = readintType(RPCSTUBSOCKET);
       cout << "p1 age: " << p1.age << endl;
       
-      p2.firstname = readStringType(RPCSTUBSOCKET);
+      p2.firstname = readstringType(RPCSTUBSOCKET);
       cout << "p2 firstname: " << p2.firstname << endl;
-      p2.lastname = readStringType(RPCSTUBSOCKET);
+      p2.lastname = readstringType(RPCSTUBSOCKET);
       cout << "p2 lastname: " << p2.lastname << endl;
-      p2.age = readIntType(RPCSTUBSOCKET);
+      p2.age = readintType(RPCSTUBSOCKET);
       cout << "p2 age: " << p2.age << endl;
 
-      p3.firstname = readStringType(RPCSTUBSOCKET);
+      p3.firstname = readstringType(RPCSTUBSOCKET);
       cout << "p3 firstname: " << p3.firstname << endl;
-      p3.lastname = readStringType(RPCSTUBSOCKET);
+      p3.lastname = readstringType(RPCSTUBSOCKET);
       cout << "p3 lastname: " << p3.lastname << endl;
-      p3.age = readIntType(RPCSTUBSOCKET);
+      p3.age = readintType(RPCSTUBSOCKET);
       cout << "p3 age: " << p3.age << endl;
 
       tp.p1 = p1;
@@ -190,8 +190,8 @@ void dispatchFunction() {
       __findPerson(tp);
     } else if (strcmp(functionName.c_str(), "area") == 0) {
       rectangle r;
-      r.x = readIntType(RPCSTUBSOCKET);
-      r.y = readIntType(RPCSTUBSOCKET);
+      r.x = readintType(RPCSTUBSOCKET);
+      r.y = readintType(RPCSTUBSOCKET);
 
       __area(r);
     } else {

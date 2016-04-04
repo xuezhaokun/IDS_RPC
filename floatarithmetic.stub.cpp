@@ -82,7 +82,7 @@ float __add(float x, float y) {
   //
   c150debug->printf(C150RPCDEBUG,"floatarithmetic.stub.cpp: returned from  add() -- responding to client");
   float result = add(x, y);
-  sendFloatType(RPCSTUBSOCKET, result);
+  sendfloatType(RPCSTUBSOCKET, result);
   return result;
 }
 
@@ -101,7 +101,7 @@ float __subtract(float x, float y) {
   //
   c150debug->printf(C150RPCDEBUG,"floatarithmetic.stub.cpp: returned from  subtract() -- responding to client");
   float result = subtract(x, y);
-  sendFloatType(RPCSTUBSOCKET, result);
+  sendfloatType(RPCSTUBSOCKET, result);
   return result;
 }
 
@@ -122,7 +122,7 @@ float __multiply(float x, float y) {
   //
   c150debug->printf(C150RPCDEBUG,"floatarithmetic.stub.cpp: returned from  multiply() -- responding to client");
   float result = multiply(x, y);
-  sendFloatType(RPCSTUBSOCKET, result);
+  sendfloatType(RPCSTUBSOCKET, result);
   return result;
 }
 
@@ -144,7 +144,7 @@ float __divide(float x, float y) {
   //
   c150debug->printf(C150RPCDEBUG,"floatarithmetic.stub.cpp: returned from  divide() -- responding to client");
   float result = divide(x, y);
-  sendFloatType(RPCSTUBSOCKET, result);
+  sendfloatType(RPCSTUBSOCKET, result);
   return result;
 }
 
@@ -194,23 +194,23 @@ void dispatchFunction() {
   if (!RPCSTUBSOCKET-> eof()) {
     //string functionName = readFunctionName(RPCSTUBSOCKET, functionNameBuffer);
     if (strcmp(functionName.c_str(), "add") == 0) {
-      float host_float_x = readFloatType(RPCSTUBSOCKET);
-      float host_float_y = readFloatType(RPCSTUBSOCKET);
+      float host_float_x = readfloatType(RPCSTUBSOCKET);
+      float host_float_y = readfloatType(RPCSTUBSOCKET);
 
       __add(host_float_x, host_float_y);
     } else if (strcmp(functionName.c_str(), "subtract") == 0) {
-      float host_float_x = readFloatType(RPCSTUBSOCKET);
-      float host_float_y = readFloatType(RPCSTUBSOCKET);
+      float host_float_x = readfloatType(RPCSTUBSOCKET);
+      float host_float_y = readfloatType(RPCSTUBSOCKET);
 
       __subtract(host_float_x, host_float_y);
     } else if (strcmp(functionName.c_str(), "multiply") == 0) {
-      float host_float_x = readFloatType(RPCSTUBSOCKET);
-      float host_float_y = readFloatType(RPCSTUBSOCKET);
+      float host_float_x = readfloatType(RPCSTUBSOCKET);
+      float host_float_y = readfloatType(RPCSTUBSOCKET);
 
       __multiply(host_float_x, host_float_y);
     } else if (strcmp(functionName.c_str(), "divide") == 0) {
-      float host_float_x = readFloatType(RPCSTUBSOCKET);
-      float host_float_y = readFloatType(RPCSTUBSOCKET);
+      float host_float_x = readfloatType(RPCSTUBSOCKET);
+      float host_float_y = readfloatType(RPCSTUBSOCKET);
 
       __divide(host_float_x, host_float_y);
     } else {

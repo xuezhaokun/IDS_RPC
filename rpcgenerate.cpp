@@ -1,7 +1,6 @@
-#include <fstream>
-#include <sstream>
-#include <vector>
 #include <iostream>
+#include <fstream>
+#include <vector>
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -22,9 +21,9 @@ fileheaders(string fileBasename);
 void
 structTypeHandler (TypeDeclaration* typep);
 void 
-arrayTypeHandler (TypeDeclaration* typep)
+arrayTypeHandler (TypeDeclaration* typep);
 string
-buildSendFunction(string sendFunctionName, string parameters, string socket);
+buildSendFunction(string sendFunctionName, string arg_or_member, string socket);
 string
 buildReadFunction (string readFunctionName, string socket);
 string
@@ -110,7 +109,7 @@ structTypeHandler (TypeDeclaration* typep) {
 // handle array type
 void 
 arrayTypeHandler (TypeDeclaration* typep) {
-	unsigned memberNum;
+	//unsigned memberNum;
 	FILE* additionalTypeHeader = fopen("additionalTypeHeader.h", "w+");
 	FILE* additionalTypeFunc = fopen("additionalTypeFunc.cpp", "w+");
 	string tyName = typep -> getName();
@@ -118,7 +117,7 @@ arrayTypeHandler (TypeDeclaration* typep) {
 	string sendFunctionName = getReadFunctionName(typep);
 	string arrayArg = buildArrayArgType(typep);
 
-	string readArrayPrototype = "void " + readFunctionName + "(" + arrayArg " readArray, C150StreamSocket *socket)";
+	string readArrayPrototype = "void " + readFunctionName + "(" + arrayArg + " readArray, C150StreamSocket *socket)";
 	string sendArrayPrototype = "void " + sendFunctionName + "(" + arrayArg + " sendArray, C150StreamSocket *socket)";
 	// write to handler header file
 	fprintf(additionalTypeHeader, "%s;\n", readArrayPrototype.c_str());
@@ -135,16 +134,16 @@ arrayTypeHandler (TypeDeclaration* typep) {
 	while (temp -> isArray()) {
 		int bound = temp -> getArrayBound();
 		// NEEDS TO DO, BUILD FOR LOOP
-		int iterVar = "i_" + to_string(loop_counter);
-		readFunction = readFunction + "for(int " + to_string(iterVar) + 
-						" = 0; " + to_string(iterVar) + " < " + to_string(bound) + 
-						"; " + to_string(iterVar) + "++){\n\t";
+		string iterVar = "i_" + to_string(loop_counter);
+		readFunction = readFunction + "for(int " + iterVar + 
+						" = 0; " + iterVar + " < " + to_string(bound) + 
+						"; " + iterVar + "++){\n\t";
 
-		sendFunction = sendFunction + "for(int " + to_string(iterVar) + 
-						" = 0; " + to_string(iterVar) + " < " + to_string(bound) + 
-						"; " + to_string(iterVar) + "++){\n\t";
-		readItemIter = readItemIter + "[" + to_string(iterVar) + "]";
-		sendItemIter = sendItemIter + "[" + to_string(iterVar) + "]";
+		sendFunction = sendFunction + "for(int " + iterVar + 
+						" = 0; " + iterVar + " < " + to_string(bound) + 
+						"; " + iterVar + "++){\n\t";
+		readItemIter = readItemIter + "[" + iterVar + "]";
+		sendItemIter = sendItemIter + "[" + iterVar + "]";
 		temp = temp -> getArrayMemberType();
 		loop_counter++;
 	}
@@ -190,7 +189,7 @@ buildArrayFunctionType (TypeDeclaration* typep) {
 		tyName += "_" + to_string(bound);
 		temp = temp -> getArrayMemberType();
 	}
-	tyName = temp.getName() + tyName;
+	tyName = temp -> getName() + tyName;
 	return tyName;
 }
 
@@ -203,7 +202,7 @@ buildArrayArgType (TypeDeclaration* typep) {
 		tyName += "[" + to_string(bound) + "]";
 		temp = temp -> getArrayMemberType();
 	}
-	tyName = temp.getName() + tyName;
+	tyName = temp -> getName() + tyName;
 	return tyName;
 }
 
