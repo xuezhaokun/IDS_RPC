@@ -10,18 +10,12 @@
 #include "typedeclaration.h"
 using namespace std;
 
-vector<string> 
-&split(const string &s, char delim, vector<string> &elems);
-vector<string> 
-split(const string &s, char delim);
-string
-getFileBasename (const char *filename);
-string 
-fileheaders(string fileBasename);
-void
-structTypeHandler (TypeDeclaration* typep);
 void 
-arrayTypeHandler (TypeDeclaration* typep);
+generateAdditionalTypeFiles (FILE *additionalTypeHeader, FILE *additionalTypeFunc, Declarations parseTree);
+void
+structTypeHandler (FILE *additionalTypeHeader, FILE *additionalTypeFunc, TypeDeclaration* typep);
+void 
+arrayTypeHandler (FILE *additionalTypeHeader, FILE *additionalTypeFunc, TypeDeclaration* typep);
 string
 buildSendFunction(string sendFunctionName, string arg_or_member, string socket);
 string
@@ -34,6 +28,14 @@ string
 getSendFunctionName (TypeDeclaration* typep);
 string 
 getReadFunctionName (TypeDeclaration* typep);
+string
+getFileBasename (const char *filename);
+vector<string> 
+&split(const string &s, char delim, vector<string> &elems);
+vector<string> 
+split(const string &s, char delim);
+string 
+fileheaders(string fileBasename);
 
 int 
 main(int argc, char const *argv[])
@@ -49,26 +51,62 @@ main(int argc, char const *argv[])
     };
 
   	for (argnum = 1; argnum < argc; argnum ++) {
-    	string fileBasename = getFileBasename(argv[argnum]);
-    	cout << "basename is " << fileBasename << endl;
-    	cout << "commonheader is " << fileheaders(fileBasename) << endl;
-    }
-    //FILE* additionalTypeHeader = fopen("additionalTypeHeader.h").c_str(), "w+");
-    //FILE* additionalTypeFunc = fopen("additionalTypeFunc.cpp").c_str(), "w+");
+    	//string fileBasename = getFileBasename(argv[argnum]);
+    	//cout << "basename is " << fileBasename << endl;
+    	//cout << "commonheader is " << fileheaders(fileBasename) << endl;
+    
+		//
+		// Open the file
+		//
+		ifstream idlFile(argv[argnum]);        // open
 
+		if (!idlFile.is_open()) {
+			stringstream ss;
+			ss << "Could not open IDL file: " << argv[argnum];
+			throw C150Exception(ss.str());
+		}
+
+		Declarations parseTree(idlFile);
+		FILE* additionalTypeHeader = fopen("additionalTypeHeader.h", "w+");
+		FILE* additionalTypeFunc = fopen("additionalTypeFunc.cpp", "w+");
+		generateAdditionalTypeFiles(additionalTypeHeader, additionalTypeFunc, parseTree);
+		fclose(additionalTypeHeader);
+		fclose(additionalTypeFunc);
+
+    }
     return 0;
 }
 
+// generate additional helper functions for array and strcut type
+void 
+generateAdditionalTypeFiles (FILE *additionalTypeHeader, FILE *additionalTypeFunc, Declarations parseTree) {
+	std::map<std::string, TypeDeclaration*>::iterator iter;
+
+    TypeDeclaration *typep;
+
+    for (iter = parseTree.types.begin(); iter != parseTree.types.end(); ++iter) {
+        
+        typep = iter->second;
+        
+        if(typep->isStruct()) {
+            structTypeHandler(additionalTypeHeader, additionalTypeFunc, typep);
+        } else if(typep->isArray()) {
+            arrayTypeHandler(additionalTypeHeader, additionalTypeFunc, typep);
+        }
+    }
+}
 
 // handle struct
 void
-structTypeHandler (TypeDeclaration* typep) {
+structTypeHandler (FILE *additionalTypeHeader, FILE *additionalTypeFunc, TypeDeclaration* typep) {
 	unsigned memberNum;
-	FILE* additionalTypeHeader = fopen("additionalTypeHeader.h", "w+");
-	FILE* additionalTypeFunc = fopen("additionalTypeFunc.cpp", "w+");
+	//FILE* additionalTypeHeader = fopen("additionalTypeHeader.h", "w+");
+	//FILE* additionalTypeFunc = fopen("additionalTypeFunc.cpp", "w+");
 	string tyName = typep -> getName();
-	string readFunctionName = getSendFunctionName(typep);
-	string sendFunctionName = getReadFunctionName(typep);
+	
+	string readFunctionName = getReadFunctionName(typep);
+	string sendFunctionName = getSendFunctionName(typep);
+
 	string readStructPrototype = tyName + " " + readFunctionName + "(C150StreamSocket *socket)";
 	string sendStructPrototype = "void " + sendFunctionName + "(" + tyName + " structData, C150StreamSocket *socket)";
 	// write to handler header file
@@ -97,24 +135,24 @@ structTypeHandler (TypeDeclaration* typep) {
 		readFunction += buildReadFunction(readFunctionName, "socket");
 	}
 
-	sendFunction += "}\n";
-	readFunction += "\t return result;\n}\n";
+	sendFunction += "\n}\n";
+	readFunction += "return result;\n}\n";
 	// write to handler function file
-	fprintf(additionalTypeFunc, "%s;\n", sendFunction.c_str());
-	fprintf(additionalTypeFunc, "%s;\n", readFunction.c_str());
-	fclose(additionalTypeHeader);
-	fclose(additionalTypeFunc);
+	fprintf(additionalTypeFunc, "%s\n", sendFunction.c_str());
+	fprintf(additionalTypeFunc, "%s\n", readFunction.c_str());
+	//fclose(additionalTypeHeader);
+	//fclose(additionalTypeFunc);
 }
 
 // handle array type
 void 
-arrayTypeHandler (TypeDeclaration* typep) {
+arrayTypeHandler (FILE *additionalTypeHeader, FILE *additionalTypeFunc, TypeDeclaration* typep) {
 	//unsigned memberNum;
-	FILE* additionalTypeHeader = fopen("additionalTypeHeader.h", "w+");
-	FILE* additionalTypeFunc = fopen("additionalTypeFunc.cpp", "w+");
+	//FILE* additionalTypeHeader = fopen("additionalTypeHeader.h", "w+");
+	//FILE* additionalTypeFunc = fopen("additionalTypeFunc.cpp", "w+");
 	string tyName = typep -> getName();
-	string readFunctionName = getSendFunctionName(typep);
-	string sendFunctionName = getReadFunctionName(typep);
+	string readFunctionName = getReadFunctionName(typep);
+	string sendFunctionName = getSendFunctionName(typep);
 	string arrayArg = buildArrayArgType(typep);
 
 	string readArrayPrototype = "void " + readFunctionName + "(" + arrayArg + " readArray, C150StreamSocket *socket)";
@@ -137,7 +175,7 @@ arrayTypeHandler (TypeDeclaration* typep) {
 		string iterVar = "i_" + to_string(loop_counter);
 		readFunction = readFunction + "for(int " + iterVar + 
 						" = 0; " + iterVar + " < " + to_string(bound) + 
-						"; " + iterVar + "++){\n\t";
+						"; " + iterVar + "++){\n\t\t";
 
 		sendFunction = sendFunction + "for(int " + iterVar + 
 						" = 0; " + iterVar + " < " + to_string(bound) + 
@@ -156,27 +194,27 @@ arrayTypeHandler (TypeDeclaration* typep) {
 	readFunction = readFunction + "}\n";
 	sendFunction = sendFunction + "}\n";
 
-	fprintf(additionalTypeFunc, "%s;\n", readFunction.c_str());
-	fprintf(additionalTypeFunc, "%s;\n", sendFunction.c_str());
+	fprintf(additionalTypeFunc, "%s}\n", readFunction.c_str());
+	fprintf(additionalTypeFunc, "%s}\n", sendFunction.c_str());
 	
-	fclose(additionalTypeHeader);
-	fclose(additionalTypeFunc);
+	//fclose(additionalTypeHeader);
+	//fclose(additionalTypeFunc);
 }
 
 string
 buildSendFunction(string sendFunctionName, string arg_or_member, string socket) {
 	string sendFunction = sendFunctionName + "(";
 	if (sendFunction == "sendvoidType") {
-		sendFunction += socket + ");\n";
+		sendFunction += socket + ");\n\t";
 	} else {
-		sendFunction += arg_or_member + ", " + socket + ");\n";
+		sendFunction += arg_or_member + ", " + socket + ");\n\t";
 	}
 	return sendFunction;
 }
 
 string
 buildReadFunction (string readFunctionName, string socket){
-	string readFunction = readFunctionName + "(" + socket +");\n";
+	string readFunction = readFunctionName + "(" + socket +");\n\t";
 	return readFunction;
 }
 
