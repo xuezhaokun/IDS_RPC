@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstring>
 #include <string>
+#include <algorithm>
 #include "c150exceptions.h"
 #include "declarations.h"
 #include "functiondeclaration.h"
@@ -20,6 +21,8 @@ string
 buildSendFunction(string sendFunctionName, string arg_or_member, string socket);
 string
 buildReadFunction (string readFunctionName, string socket);
+string
+buildReadFunction (string readFunctionName, string arg, string socket);
 string
 buildArrayFunctionType (TypeDeclaration* typep);
 string
@@ -114,8 +117,6 @@ generateAdditionalTypeFiles (FILE *additionalTypeHeader, FILE *additionalTypeFun
 void
 structTypeHandler (FILE *additionalTypeHeader, FILE *additionalTypeFunc, TypeDeclaration* typep) {
 	unsigned memberNum;
-	//FILE* additionalTypeHeader = fopen("additionalTypeHeader.h", "w+");
-	//FILE* additionalTypeFunc = fopen("additionalTypeFunc.cpp", "w+");
 	string tyName = typep -> getName();
 	
 	string readFunctionName = getReadFunctionName(typep);
@@ -143,10 +144,14 @@ structTypeHandler (FILE *additionalTypeHeader, FILE *additionalTypeFunc, TypeDec
 		sendFunction += buildSendFunction(sendFunctionName, sendParam, "socket");
 
 		//read function
-
-		readFunction += "result." + mempName + " = ";
 		readFunctionName = getReadFunctionName(memp -> getType());
-		readFunction += buildReadFunction(readFunctionName, "socket");
+		
+		if (memp -> getType() -> isArray()){
+			string arg = "result." + mempName;
+			readFunction += buildReadFunction(readFunctionName, arg, "socket");
+		}else{
+			readFunction += "result." + mempName + " = " + buildReadFunction(readFunctionName, "socket");
+		}
 	}
 
 	sendFunction += "\n}\n";
@@ -154,68 +159,66 @@ structTypeHandler (FILE *additionalTypeHeader, FILE *additionalTypeFunc, TypeDec
 	// write to handler function file
 	fprintf(additionalTypeFunc, "%s\n", sendFunction.c_str());
 	fprintf(additionalTypeFunc, "%s\n", readFunction.c_str());
-	//fclose(additionalTypeHeader);
-	//fclose(additionalTypeFunc);
 }
 
 // handle array type
 void 
 arrayTypeHandler (FILE *additionalTypeHeader, FILE *additionalTypeFunc, TypeDeclaration* typep) {
-	//unsigned memberNum;
-	//FILE* additionalTypeHeader = fopen("additionalTypeHeader.h", "w+");
-	//FILE* additionalTypeFunc = fopen("additionalTypeFunc.cpp", "w+");
+	
 	string tyName = typep -> getName();
 	string readFunctionName = getReadFunctionName(typep);
 	string sendFunctionName = getSendFunctionName(typep);
 	string arrayArg = buildArrayArgType(typep);
 
-	string readArrayPrototype = "void " + readFunctionName + "(C150StreamSocket *socket, " + arrayArg + " readArray)";
-	string sendArrayPrototype = "void " + sendFunctionName + "(C150StreamSocket *socket, " + arrayArg + " sendArray)";
+	string readArrayPrototype = "void " + readFunctionName + "(C150StreamSocket *socket, " + arrayArg + ")";
+	string sendArrayPrototype = "void " + sendFunctionName + "(C150StreamSocket *socket, " + arrayArg + ")";
 	// write to handler header file
 	fprintf(additionalTypeHeader, "%s;\n", readArrayPrototype.c_str());
 	fprintf(additionalTypeHeader, "%s;\n", sendArrayPrototype.c_str());
 	// write to handler function file
-	string readFunction = readArrayPrototype + "{\n\t";
-	string sendFunction = sendArrayPrototype + "{\n\t";
+	string readFunction = readArrayPrototype + "{\n";
+	string sendFunction = sendArrayPrototype + "{\n";
 
 	TypeDeclaration* temp = typep;
 	int loop_counter = 0;
 	string readItemIter = "";
 	string sendItemIter = "";
-
+	string tabs = "\t";
+	string closedCurlyBrackets = "";
 	while (temp -> isArray()) {
 		int bound = temp -> getArrayBound();
-
+		closedCurlyBrackets = tabs + "}\n" + closedCurlyBrackets;
 		string iterVar = "i_" + to_string(loop_counter);
-		readFunction = readFunction + "for(int " + iterVar + 
+		readFunction = readFunction + tabs + "for(int " + iterVar + 
 						" = 0; " + iterVar + " < " + to_string(bound) + 
-						"; " + iterVar + "++){\n\t\t";
+						"; " + iterVar + "++){\n";
 
-		sendFunction = sendFunction + "for(int " + iterVar + 
+		sendFunction = sendFunction + tabs + "for(int " + iterVar + 
 						" = 0; " + iterVar + " < " + to_string(bound) + 
-						"; " + iterVar + "++){\n\t\t";
+						"; " + iterVar + "++){\n";
 		readItemIter = readItemIter + "[" + iterVar + "]";
 		sendItemIter = sendItemIter + "[" + iterVar + "]";
 		temp = temp -> getArrayMemberType();
 		loop_counter++;
+		tabs += "\t";
 	}
-	readItemIter = "readArray" + readItemIter;
-	sendItemIter = "sendArray" + sendItemIter;
+	readItemIter = "arrayArg" + readItemIter;
+	sendItemIter = "arrayArg" + sendItemIter;
 
 	string readArrayElementName = getReadFunctionName(temp);
 	string sendArrayElementName = getSendFunctionName(temp);
 
-	readFunction = readFunction + readItemIter + " = " + buildReadFunction(readArrayElementName, "socket");
-	sendFunction = sendFunction + buildSendFunction(sendArrayElementName, sendItemIter, "socket");
-
-	readFunction = readFunction + "}\n";
-	sendFunction = sendFunction + "}\n";
-
-	fprintf(additionalTypeFunc, "%s}\n", readFunction.c_str());
-	fprintf(additionalTypeFunc, "%s}\n", sendFunction.c_str());
+	readFunction +=  tabs + readItemIter + " = " + buildReadFunction(readArrayElementName, "socket");
+	sendFunction +=  tabs + buildSendFunction(sendArrayElementName, sendItemIter, "socket");
 	
-	//fclose(additionalTypeHeader);
-	//fclose(additionalTypeFunc);
+	// erase one tab 
+	closedCurlyBrackets.erase(0,1);
+	
+	readFunction = readFunction + closedCurlyBrackets + "\n";
+	sendFunction = sendFunction + closedCurlyBrackets + "\n";
+
+	fprintf(additionalTypeFunc, "%s}\n\n", readFunction.c_str());
+	fprintf(additionalTypeFunc, "%s}\n\n", sendFunction.c_str());
 }
 
 string
@@ -236,6 +239,12 @@ buildReadFunction (string readFunctionName, string socket){
 }
 
 string
+buildReadFunction (string readFunctionName, string arg, string socket){
+	string readFunction = readFunctionName + "(" + socket + ", " + arg +");\n\t";
+	return readFunction;
+}
+
+string
 buildArrayFunctionType (TypeDeclaration* typep) {
 	string tyName;
 	TypeDeclaration* temp;
@@ -250,14 +259,14 @@ buildArrayFunctionType (TypeDeclaration* typep) {
 
 string
 buildArrayArgType (TypeDeclaration* typep) {
-	string tyName;
+	string tyName = "";
 	TypeDeclaration* temp;
 	while (temp -> isArray()) {
 		int bound = temp -> getArrayBound();
 		tyName += "[" + to_string(bound) + "]";
 		temp = temp -> getArrayMemberType();
 	}
-	tyName = temp -> getName() + tyName;
+	tyName = temp -> getName() + " arrayArg" + tyName;
 	return tyName;
 }
 
