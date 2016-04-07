@@ -11,6 +11,8 @@
 #include "typedeclaration.h"
 using namespace std;
 
+void
+generateRPCProxy (FILE *proxyFile, Declarations parseTree);
 void 
 generateAdditionalTypeFiles (FILE *additionalTypeHeader, FILE *additionalTypeFunc, Declarations parseTree);
 void
@@ -92,6 +94,34 @@ main(int argc, char const *argv[])
 
     }
     return 0;
+}
+
+// For each proxy call, send function name first, 
+// then iterate all the arguments, and send corresponding type
+// Finally read result
+void
+generateRPCProxy (FILE *proxyFile, Declarations parseTree) {
+	unsigned int argnum;
+	std::map<std::string, FunctionDeclaration*>::iterator fiter;  
+  	FunctionDeclaration *functionp;
+  	string sendFunction = "";
+  	
+  	for (fiter = parseTree.functions.begin(); fiter != parseTree.functions.end(); ++fiter) {
+
+    	functionp = fiter -> second;
+    	string functionName = functionp -> getName();
+    	ArgumentVector& args = functionp -> getArgumentVector();
+    	string functionReturnType = functionp -> getReturnType() -> getName(); 
+
+    	for(argnum=0; argnum<args.size();argnum++) {
+      		Arg_or_Member_Declaration* argp = args[argnum];
+      		string argName = argp -> getName();
+      		string argType = argp -> getType() -> getName();
+      		string sendFunctionName = "send"
+    	}
+
+    	printf("\n\n");                    // separate functions w/ space
+  	} 
 }
 
 // generate additional helper functions for array and strcut type
@@ -232,12 +262,14 @@ buildSendFunction(string sendFunctionName, string arg_or_member, string socket) 
 	return sendFunction;
 }
 
+// for non-array type data
 string
 buildReadFunction (string readFunctionName, string socket){
 	string readFunction = readFunctionName + "(" + socket +");\n\t";
 	return readFunction;
 }
 
+// for arrays
 string
 buildReadFunction (string readFunctionName, string arg, string socket){
 	string readFunction = readFunctionName + "(" + socket + ", " + arg +");\n\t";
