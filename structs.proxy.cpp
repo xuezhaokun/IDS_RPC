@@ -38,63 +38,14 @@ using namespace std;
 using namespace C150NETWORK;  // for all the comp150 utilities 
 #include "structs.idl"
 #include "additionalTypeHandler.h"
-
-Person findPerson(ThreePeople tp) {
-  //
-  // Send the Remote Call
-  //
-  c150debug->printf(C150RPCDEBUG,"structs.proxy.cpp: add() invoked");
-  sendFunctionName(RPCPROXYSOCKET, "findPerson");
-  
-  /*
-  // send p1
-  sendstringType(RPCPROXYSOCKET, tp.p1.firstname);
-  sendstringType(RPCPROXYSOCKET, tp.p1.lastname);
-  sendintType(RPCPROXYSOCKET, tp.p1.age);
-  // send p2
-  sendstringType(RPCPROXYSOCKET, tp.p2.firstname);
-  sendstringType(RPCPROXYSOCKET, tp.p2.lastname);
-  sendintType(RPCPROXYSOCKET, tp.p2.age);
-  // send p3
-  sendstringType(RPCPROXYSOCKET, tp.p3.firstname);
-  sendstringType(RPCPROXYSOCKET, tp.p3.lastname);
-  sendintType(RPCPROXYSOCKET, tp.p3.age);
-  */
-
-  sendStruct_ThreePeople(RPCPROXYSOCKET, tp);
-
-  //
-  // Read the response
-  //
-  c150debug->printf(C150RPCDEBUG,"structs.proxy.cpp: add() invocation sent, waiting for response");
-
-  c150debug->printf(C150RPCDEBUG,"structs.proxy.cpp: add() successful return from remote call");
-  Person result;
-  /*result.firstname = readstringType(RPCPROXYSOCKET);
-  result.lastname = readstringType(RPCPROXYSOCKET);
-  result.age = readintType(RPCPROXYSOCKET);*/
-  result = readStruct_Person(RPCPROXYSOCKET);
-  //cout << ""
-  return result;
-  //return readFloatType(RPCPROXYSOCKET);
-}
-
-
-int area(rectangle r) {
-  //
-  // Send the Remote Call
-  //
-  c150debug->printf(C150RPCDEBUG,"structs.proxy.cpp: subtract() invoked");
+int area(rectangle r){
   sendFunctionName(RPCPROXYSOCKET, "area");
-  /*sendintType(RPCPROXYSOCKET, r.x);
-  sendintType(RPCPROXYSOCKET, r.y);*/
-  sendStruct_rectangle(RPCPROXYSOCKET, r);
-  //
-  // Read the response
-  //
-  c150debug->printf(C150RPCDEBUG,"structs.proxy.cpp: subtract() invocation sent, waiting for response");
-
-  c150debug->printf(C150RPCDEBUG,"structs.proxy.cpp: subtract() successful return from remote call");
-
+  sendStruct_rectangle (RPCPROXYSOCKET, r);
   return readintType(RPCPROXYSOCKET);
 }
+Person findPerson(ThreePeople tp){
+  sendFunctionName(RPCPROXYSOCKET, "findPerson");
+  sendStruct_ThreePeople (RPCPROXYSOCKET, tp);
+  return readStruct_Person(RPCPROXYSOCKET);
+}
+

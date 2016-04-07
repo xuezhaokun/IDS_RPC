@@ -13,6 +13,8 @@ using namespace std;
 
 void
 generateRPCProxy (FILE *proxyFile, Declarations parseTree);
+string
+getProxyFunctionPrototype (FunctionDeclaration *functionp);
 void 
 generateAdditionalTypeFiles (FILE *additionalTypeHeader, FILE *additionalTypeFunc, Declarations parseTree);
 void
@@ -74,6 +76,7 @@ main(int argc, char const *argv[])
 
 		string headerFileName = "additionalTypeHandler.h";
 		string functionFileName = "additionalTypeHandler.cpp";
+		string proxy = "test.structs.proxy.cpp";
 
 		string fileBasename = getFileBasename(argv[argnum]);
 		string functionFileHeader = fileheaders(fileBasename);
@@ -82,15 +85,18 @@ main(int argc, char const *argv[])
 
 		FILE* additionalTypeHeader = fopen(headerFileName.c_str(), "w+");
 		FILE* additionalTypeFunc = fopen(functionFileName.c_str(), "w+");
+		FILE* proxyFile = fopen(proxy.c_str(), "w+");
 
 		fprintf(additionalTypeHeader, "%s\n", headFileheaders.c_str());
 		fprintf(additionalTypeFunc, "%s\n", functionFileHeader.c_str());
 
 		generateAdditionalTypeFiles(additionalTypeHeader, additionalTypeFunc, parseTree);
-		
+		generateRPCProxy(proxyFile, parseTree);
+
 		fprintf(additionalTypeHeader, "%s\n", "#endif");
 		fclose(additionalTypeHeader);
 		fclose(additionalTypeFunc);
+		fclose(proxyFile);
 
     }
     return 0;
@@ -104,26 +110,60 @@ generateRPCProxy (FILE *proxyFile, Declarations parseTree) {
 	unsigned int argnum;
 	std::map<std::string, FunctionDeclaration*>::iterator fiter;  
   	FunctionDeclaration *functionp;
-  	string sendFunction = "";
-  	
+
   	for (fiter = parseTree.functions.begin(); fiter != parseTree.functions.end(); ++fiter) {
 
     	functionp = fiter -> second;
     	string functionName = functionp -> getName();
     	ArgumentVector& args = functionp -> getArgumentVector();
     	string functionReturnType = functionp -> getReturnType() -> getName(); 
+    	string functionPrototye = getProxyFunctionPrototype(functionp);
+    	fprintf(proxyFile, "%s{\n", functionPrototye.c_str());
+		// send function name first
+		string sendFunctionNameToSub = "sendFunctionName(RPCPROXYSOCKET, \"" + functionName + "\");";
+    	fprintf(proxyFile, "\t%s\n", sendFunctionNameToSub.c_str());
 
-    	for(argnum=0; argnum<args.size();argnum++) {
+    	for(argnum = 0; argnum < args.size(); argnum++) {
       		Arg_or_Member_Declaration* argp = args[argnum];
       		string argName = argp -> getName();
-      		string argType = argp -> getType() -> getName();
-      		string sendFunctionName = "send"
+      		string sendArgToSub = getSendFunctionName(argp -> getType()) + " " + "(RPCPROXYSOCKET, " + argName + ");";
+      		fprintf(proxyFile, "\t%s\n", sendArgToSub.c_str());
     	}
-
-    	printf("\n\n");                    // separate functions w/ space
+    	string returnResult = getReadFunctionName(functionp -> getReturnType()) + "(RPCPROXYSOCKET);";
+    	fprintf(proxyFile, "\treturn %s\n}\n", returnResult.c_str());
   	} 
 }
 
+string
+getProxyFunctionPrototype (FunctionDeclaration *functionp) {
+	unsigned int argnum;
+	string functionPrototye = "";
+	string functionName = functionp -> getName();
+    ArgumentVector& args = functionp -> getArgumentVector();
+   	string functionReturnType = functionp -> getReturnType() -> getName(); 
+   	functionPrototye += functionReturnType + " " + functionName + "(";
+   	string arguments = "";
+
+   	for(argnum = 0; argnum<args.size(); argnum++) {
+      	Arg_or_Member_Declaration* argp = args[argnum];
+      	string argName = argp -> getName();
+      	string argType = "";
+      	
+      	if (argp -> getType() -> isArray()) {
+      		argType = buildArrayArgType(argp -> getType());
+      	} else {
+      		argType = argp -> getType() -> getName();
+      	}
+      	
+      	arguments +=  argType + " " + argName + ", ";
+    }
+    // remove the last ", "
+    arguments = arguments.substr(0, arguments.size() - 2);
+    functionPrototye += arguments;
+    functionPrototye += ")";
+
+	return functionPrototye;
+}
 // generate additional helper functions for array and strcut type
 void 
 generateAdditionalTypeFiles (FILE *additionalTypeHeader, FILE *additionalTypeFunc, Declarations parseTree) {
@@ -301,6 +341,7 @@ buildArrayArgType (TypeDeclaration* typep) {
 	tyName = temp -> getName() + " arrayArg" + tyName;
 	return tyName;
 }
+
 
 string 
 getSendFunctionName (TypeDeclaration* typep) {
