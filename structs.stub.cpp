@@ -50,7 +50,7 @@ using namespace std;
 using namespace C150NETWORK;  // for all the comp150 utilities 
 
 #include "structs.idl"
-#include "additionalTypeHandler.h"
+#include "structs_additionalTypeHandler.h"
 void getFunctionNamefromStream();
 
 // ======================================================================
@@ -68,48 +68,15 @@ void getFunctionNamefromStream();
 // ======================================================================
   
 
-
-void __findPerson(ThreePeople tp) {
-
-  //
-  // Time to actually call the function 
-  //
-  c150debug->printf(C150RPCDEBUG,"structs.stub.cpp: invoking findPerson()");
-
-  //
-  // Send the response to the client
-  //
-  // If func1 returned something other than void, this is
-  // where we'd send the return value back.
-  //
-  c150debug->printf(C150RPCDEBUG,"structs.stub.cpp: returned from  findPerson() -- responding to client");
-  cout << "calling __findPerson" << endl;
-  Person result = findPerson(tp);
-  cout << "result firstname is " << result.age << endl;
-  /*sendstringType(RPCSTUBSOCKET, result.firstname);
-  sendstringType(RPCSTUBSOCKET, result.lastname);
-  sendintType(RPCSTUBSOCKET, result.age);*/
-  sendStruct_Person(RPCSTUBSOCKET, result);
-}
-
-void __area(rectangle r) {
-
-  //
-  // Time to actually call the function 
-  //
-  c150debug->printf(C150RPCDEBUG,"structs.stub.cpp: invoking area()");
-
-  //
-  // Send the response to the client
-  //
-  // If func2 returned something other than void, this is
-  // where we'd send the return value back.
-  //
-  c150debug->printf(C150RPCDEBUG,"structs.stub.cpp: returned from  area() -- responding to client");
+void __area(rectangle r){
   int result = area(r);
-  sendintType(RPCSTUBSOCKET, result);
-  //return result;
+  sendintType (RPCSTUBSOCKET, result);
 }
+void __findPerson(ThreePeople tp){
+  Person result = findPerson(tp);
+  sendStruct_Person (RPCSTUBSOCKET, result);
+}
+
 
 
 //

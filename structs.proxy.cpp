@@ -37,7 +37,7 @@
 using namespace std; 
 using namespace C150NETWORK;  // for all the comp150 utilities 
 #include "structs.idl"
-#include "additionalTypeHandler.h"
+#include "structs_additionalTypeHandler.h"
 int area(rectangle r){
   sendFunctionName(RPCPROXYSOCKET, "area");
   sendStruct_rectangle (RPCPROXYSOCKET, r);

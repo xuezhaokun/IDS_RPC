@@ -12,9 +12,17 @@
 using namespace std;
 
 void
+generateRPCStub (FILE *stubFile, Declarations parseTree);
+void
 generateRPCProxy (FILE *proxyFile, Declarations parseTree);
+string 
+getStubFunctionPrototype (FunctionDeclaration *functionp);
 string
 getProxyFunctionPrototype (FunctionDeclaration *functionp);
+string 
+getActualFunctionCallArgs (FunctionDeclaration *functionp);
+string 
+getFunctionArgs (FunctionDeclaration *functionp);
 void 
 generateAdditionalTypeFiles (FILE *additionalTypeHeader, FILE *additionalTypeFunc, Declarations parseTree);
 void
@@ -74,11 +82,13 @@ main(int argc, char const *argv[])
 
 		Declarations parseTree(idlFile);
 
-		string headerFileName = "additionalTypeHandler.h";
-		string functionFileName = "additionalTypeHandler.cpp";
-		string proxy = "test.structs.proxy.cpp";
-
 		string fileBasename = getFileBasename(argv[argnum]);
+		
+		string headerFileName = fileBasename + "_additionalTypeHandler.h";
+		string functionFileName = fileBasename + "_additionalTypeHandler.cpp";
+		string proxy = "test.structs.proxy.cpp";
+		string stub = "test.structs.stub.cpp";
+
 		string functionFileHeader = fileheaders(fileBasename);
 		functionFileHeader = functionFileHeader + "#include \"" + headerFileName + "\"\n";
 		string headFileheaders = headerFileheaders();
@@ -86,25 +96,50 @@ main(int argc, char const *argv[])
 		FILE* additionalTypeHeader = fopen(headerFileName.c_str(), "w+");
 		FILE* additionalTypeFunc = fopen(functionFileName.c_str(), "w+");
 		FILE* proxyFile = fopen(proxy.c_str(), "w+");
+		FILE* stubFile = fopen(stub.c_str(), "w+");
 
 		fprintf(additionalTypeHeader, "%s\n", headFileheaders.c_str());
 		fprintf(additionalTypeFunc, "%s\n", functionFileHeader.c_str());
 
 		generateAdditionalTypeFiles(additionalTypeHeader, additionalTypeFunc, parseTree);
 		generateRPCProxy(proxyFile, parseTree);
+		generateRPCStub(stubFile, parseTree);
 
 		fprintf(additionalTypeHeader, "%s\n", "#endif");
 		fclose(additionalTypeHeader);
 		fclose(additionalTypeFunc);
 		fclose(proxyFile);
+		fclose(stubFile);
 
     }
     return 0;
 }
 
 void
-generateRPCStud (FILE *stubFile, Declarations parseTree) {
-	
+generateRPCStub (FILE *stubFile, Declarations parseTree) {
+	std::map<std::string, FunctionDeclaration*>::iterator fiter;  
+  	FunctionDeclaration *functionp;
+  	
+  	for (fiter = parseTree.functions.begin(); fiter != parseTree.functions.end(); ++fiter) {
+  		functionp = fiter -> second;
+  		string functionName = functionp -> getName();
+    	string functionReturnType = functionp -> getReturnType() -> getName(); 
+  		string functionPrototye = getStubFunctionPrototype(functionp);
+  		fprintf(stubFile, "%s{\n", functionPrototye.c_str());
+  		string sendToProxyArg = "";
+  		string functionCallArgs = getActualFunctionCallArgs (functionp);
+  		if (strcmp(functionReturnType.c_str(), "void") != 0){
+  			string functionCall = functionReturnType + " result = " + functionName + "(" + functionCallArgs + ")";
+  			fprintf(stubFile, "\t%s;\n", functionCall.c_str());
+  			sendToProxyArg = ", result";
+  		}
+
+  		string sendToProxy = getSendFunctionName(functionp -> getReturnType()) + " " + "(RPCSTUBSOCKET" + sendToProxyArg + ");";
+		fprintf(stubFile, "\t%s\n}\n", sendToProxy.c_str());
+  	}
+
+
+
 }
 
 // For each proxy call, send function name first, 
@@ -139,15 +174,60 @@ generateRPCProxy (FILE *proxyFile, Declarations parseTree) {
   	} 
 }
 
-string
-getProxyFunctionPrototype (FunctionDeclaration *functionp) {
-	unsigned int argnum;
+string 
+getStubFunctionPrototype (FunctionDeclaration *functionp) {
 	string functionPrototye = "";
 	string functionName = functionp -> getName();
-    ArgumentVector& args = functionp -> getArgumentVector();
+   	functionPrototye += "void __" + functionName + "(";
+   	string arguments = getFunctionArgs(functionp);
+    functionPrototye += arguments;
+    functionPrototye += ")";
+
+	return functionPrototye;
+}
+
+string
+getProxyFunctionPrototype (FunctionDeclaration *functionp) {
+	string functionPrototye = "";
+	string functionName = functionp -> getName();
    	string functionReturnType = functionp -> getReturnType() -> getName(); 
    	functionPrototye += functionReturnType + " " + functionName + "(";
-   	string arguments = "";
+   	string arguments = getFunctionArgs(functionp);
+    functionPrototye += arguments;
+    functionPrototye += ")";
+
+	return functionPrototye;
+}
+
+string 
+getActualFunctionCallArgs (FunctionDeclaration *functionp) {
+	unsigned int argnum;
+	string arguments = "";
+    ArgumentVector& args = functionp -> getArgumentVector();
+
+   	for(argnum = 0; argnum<args.size(); argnum++) {
+      	Arg_or_Member_Declaration* argp = args[argnum];
+      	string argName = argp -> getName();
+      	string argType = "";
+      	
+      	if (argp -> getType() -> isArray()) {
+      		argType = buildArrayArgType(argp -> getType());
+      	} else {
+      		argType = argp -> getType() -> getName();
+      	}
+      	
+      	arguments +=  argName + ", ";
+    }
+    // remove the last ", "
+    arguments = arguments.substr(0, arguments.size() - 2);
+    return arguments;
+}
+
+string 
+getFunctionArgs (FunctionDeclaration *functionp) {
+	unsigned int argnum;
+	string arguments = "";
+    ArgumentVector& args = functionp -> getArgumentVector();
 
    	for(argnum = 0; argnum<args.size(); argnum++) {
       	Arg_or_Member_Declaration* argp = args[argnum];
@@ -164,11 +244,9 @@ getProxyFunctionPrototype (FunctionDeclaration *functionp) {
     }
     // remove the last ", "
     arguments = arguments.substr(0, arguments.size() - 2);
-    functionPrototye += arguments;
-    functionPrototye += ")";
-
-	return functionPrototye;
+    return arguments;
 }
+
 // generate additional helper functions for array and strcut type
 void 
 generateAdditionalTypeFiles (FILE *additionalTypeHeader, FILE *additionalTypeFunc, Declarations parseTree) {
