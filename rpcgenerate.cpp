@@ -102,6 +102,11 @@ main(int argc, char const *argv[])
     return 0;
 }
 
+void
+generateRPCStud (FILE *stubFile, Declarations parseTree) {
+	
+}
+
 // For each proxy call, send function name first, 
 // then iterate all the arguments, and send corresponding type
 // Finally read result
