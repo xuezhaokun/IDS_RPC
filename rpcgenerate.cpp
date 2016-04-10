@@ -138,8 +138,16 @@ generateRPCStub (FILE *stubFile, Declarations parseTree) {
 		fprintf(stubFile, "\t%s\n}\n", sendToProxy.c_str());
   	}
 
+  	string dispatchFunction = "void dispatchFunction() {\n";
+  	dispatchFunction += "\tchar functionNameBuffer[50];\n";
+  	dispatchFunction += "\tstring functionName = readFunctionName(RPCSTUBSOCKET, functionNameBuffer, sizeof(functionNameBuffer));\n";
+  	dispatchFunction += "\tif (!RPCSTUBSOCKET-> eof()) {\n";
+  	
+  	// NEEDS TO DO
 
-
+  	dispatchFunction += "\t}\n";
+  	dispatchFunction += "}\n";
+  	fprintf(stubFile, "%s", dispatchFunction.c_str());
 }
 
 // For each proxy call, send function name first, 
