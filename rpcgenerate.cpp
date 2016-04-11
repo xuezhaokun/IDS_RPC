@@ -51,6 +51,10 @@ vector<string>
 split(const string &s, char delim);
 string 
 fileheaders(string fileBasename);
+string 
+proxyHeaders (string headers);
+string 
+stubHeaders (string headers);
 string
 headerFileheaders ();
 
@@ -86,11 +90,13 @@ main(int argc, char const *argv[])
 		
 		string headerFileName = fileBasename + "_additionalTypeHandler.h";
 		string functionFileName = fileBasename + "_additionalTypeHandler.cpp";
-		string proxy = "test.structs.proxy.cpp";
-		string stub = "test.structs.stub.cpp";
+		string proxy = fileBasename + ".proxy.cpp";
+		string stub = fileBasename + ".stub.cpp";
 
 		string functionFileHeader = fileheaders(fileBasename);
 		functionFileHeader = functionFileHeader + "#include \"" + headerFileName + "\"\n";
+		string proxyFileHeaders = proxyHeaders(functionFileHeader);
+		string stubFileHeaders = stubHeaders(functionFileHeader);
 		string headFileheaders = headerFileheaders();
 
 		FILE* additionalTypeHeader = fopen(headerFileName.c_str(), "w+");
@@ -100,6 +106,8 @@ main(int argc, char const *argv[])
 
 		fprintf(additionalTypeHeader, "%s\n", headFileheaders.c_str());
 		fprintf(additionalTypeFunc, "%s\n", functionFileHeader.c_str());
+		fprintf(proxyFile, "%s\n", proxyFileHeaders.c_str());
+		fprintf(stubFile, "%s\n", stubFileHeaders.c_str());
 
 		generateAdditionalTypeFiles(additionalTypeHeader, additionalTypeFunc, parseTree);
 		generateRPCProxy(proxyFile, parseTree);
@@ -544,19 +552,28 @@ string
 fileheaders (string fileBasename) {
     string header = "";
     header.append("#include \"c150debug.h\"\n")
-          .append("#include \"rpcproxyhelper.h\"\n")
-       	  .append("#include \"basicTypeHandler.h\"\n") 
           .append("#include <fstream>\n")
           .append("#include <cstdio>\n")
        	  .append("#include <cstring>\n")
        	  .append("#include <string>\n")
        	  .append("#include <fstream>\n")
        	  .append("#include <arpa/inet.h>\n") 
-       	  .append("using namespace C150NETWORK;\n")
        	  .append("using namespace std;\n")
-       	  .append("#include \"" + fileBasename + ".idl\"\n");
+       	  .append("using namespace C150NETWORK;\n")
+       	  .append("#include \"" + fileBasename + ".idl\"\n")
+       	  .append("#include \"basicTypeHandler.h\"\n");
     return header;
 }
+
+string 
+proxyHeaders (string headers) {
+	return headers.append("#include \"rpcproxyhelper.h\"\n");
+} 
+
+string 
+stubHeaders (string headers) {
+	return headers.append("#include \"rpcstubhelper.h\"\n");
+} 
 
 // headers for header file
 string

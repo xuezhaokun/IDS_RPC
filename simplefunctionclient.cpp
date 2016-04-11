@@ -49,6 +49,7 @@
 
 #include "rpcproxyhelper.h"
 
+#include "basicTypeHandler.h"
 #include "c150debug.h"
 #include "c150grading.h"
 #include <fstream>
