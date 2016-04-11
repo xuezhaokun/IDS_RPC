@@ -59,6 +59,9 @@ void __findPerson(ThreePeople tp){
   Person result = findPerson(tp);
   sendStruct_Person (RPCSTUBSOCKET, result);
 }
+void __searchRectangles(rectangle rects[200]){
+  sendvoidType (RPCSTUBSOCKET);
+}
 void __badFunction(char *functionName){
   char doneBuffer[5] = "BAD";
    RPCSTUBSOCKET->write(doneBuffer, strlen(doneBuffer)+1);
@@ -73,10 +76,12 @@ void dispatchFunction() {
     } else if (strcmp(functionName.c_str(), "findPerson") == 0){
       ThreePeople tp = readStruct_ThreePeople(RPCSTUBSOCKET);
       __findPerson(tp);
+    } else if (strcmp(functionName.c_str(), "searchRectangles") == 0){
+      rectangle rects[200];
+    readArray_rectangle_200(RPCSTUBSOCKET, rects);
+      __searchRectangles(rects);
     }  else {
       __badFunction(functionNameBuffer);
     }
   }
 }
-
-

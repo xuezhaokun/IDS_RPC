@@ -39,13 +39,18 @@ using namespace C150NETWORK;  // for all the comp150 utilities
 #include "structs.idl"
 #include "structs_additionalTypeHandler.h"
 int area(rectangle r){
-  sendFunctionName(RPCPROXYSOCKET, "area");
-  sendStruct_rectangle (RPCPROXYSOCKET, r);
-  return readintType(RPCPROXYSOCKET);
+	sendFunctionName(RPCPROXYSOCKET, "area");
+	sendStruct_rectangle (RPCPROXYSOCKET, r);
+	return readintType(RPCPROXYSOCKET);
 }
 Person findPerson(ThreePeople tp){
-  sendFunctionName(RPCPROXYSOCKET, "findPerson");
-  sendStruct_ThreePeople (RPCPROXYSOCKET, tp);
-  return readStruct_Person(RPCPROXYSOCKET);
+	sendFunctionName(RPCPROXYSOCKET, "findPerson");
+	sendStruct_ThreePeople (RPCPROXYSOCKET, tp);
+	return readStruct_Person(RPCPROXYSOCKET);
+}
+void searchRectangles(rectangle rects[200]){
+	sendFunctionName(RPCPROXYSOCKET, "searchRectangles");
+	sendArray_rectangle_200 (RPCPROXYSOCKET, rects);
+	return readvoidType(RPCPROXYSOCKET);
 }
 

@@ -38,7 +38,7 @@ buildReadFunction (string readFunctionName, string arg, string socket);
 string
 buildArrayFunctionType (TypeDeclaration* typep);
 string
-buildArrayArgType (TypeDeclaration* typep);
+buildArrayArgType (TypeDeclaration* typep, string argName);
 string 
 getSendFunctionName (TypeDeclaration* typep);
 string 
@@ -158,7 +158,7 @@ generateRPCStub (FILE *stubFile, Declarations parseTree) {
 		
 		string compareFunctionName = ifStatement + " (strcmp(functionName.c_str(), \"" + functionName + "\") == 0){\n";
 		fprintf(stubFile, "%s", compareFunctionName.c_str());
-
+		string readFunctiontabs = "\t\t\t";
     	for(argnum = 0; argnum < args.size(); argnum++) {
       		Arg_or_Member_Declaration* argp = args[argnum];
       		string argName = argp -> getName();
@@ -166,18 +166,21 @@ generateRPCStub (FILE *stubFile, Declarations parseTree) {
       		string readFunctionName = getReadFunctionName(argp -> getType());
       		string readFunction = "";
       		if (argp -> getType() -> isArray()) {
-      			string arrayArg = buildArrayArgType(argp -> getType()) + " " + argName + ";\n\t\t";
+      			string arrayArg = buildArrayArgType(argp -> getType(), argName) + ";\n\t\t\t";
       			readFunction += arrayArg;
       			readFunction += buildReadFunction(readFunctionName, argName, "RPCSTUBSOCKET");
       		} else {
       			readFunction += argType + " " + argName + " = " + buildReadFunction(readFunctionName, "RPCSTUBSOCKET");
       		}
-      		fprintf(stubFile, "\t\t\t%s", readFunction.c_str());
-      		string functionCallArgs = getActualFunctionCallArgs (functionp);
-      		string functionCall = "\t\t__" + functionName + "(" + functionCallArgs + ");\n";
-      		ifStatement = "else if";
-      		fprintf(stubFile, "%s\t\t} ", functionCall.c_str());
+      		readFunction = readFunctiontabs + readFunction;
+      		fprintf(stubFile, "%s", readFunction.c_str());
+      		readFunctiontabs = "\t\t";
     	}
+
+    	string functionCallArgs = getActualFunctionCallArgs (functionp);
+      	string functionCall = "\t\t__" + functionName + "(" + functionCallArgs + ");\n";
+      	ifStatement = "else if";
+      	fprintf(stubFile, "%s\t\t} ", functionCall.c_str());
 
   	}
   	string badFunctionCall = " else {\n \t\t\t__badFunction(functionNameBuffer);\n\t\t}\n";
@@ -256,7 +259,7 @@ getActualFunctionCallArgs (FunctionDeclaration *functionp) {
       	string argType = "";
       	
       	if (argp -> getType() -> isArray()) {
-      		argType = buildArrayArgType(argp -> getType());
+      		argType = buildArrayArgType(argp -> getType(), argName);
       	} else {
       		argType = argp -> getType() -> getName();
       	}
@@ -280,12 +283,14 @@ getFunctionArgs (FunctionDeclaration *functionp) {
       	string argType = "";
       	
       	if (argp -> getType() -> isArray()) {
-      		argType = buildArrayArgType(argp -> getType());
+      		argType = buildArrayArgType(argp -> getType(), argName);
+      		arguments +=  argType + ", ";
       	} else {
       		argType = argp -> getType() -> getName();
+      		arguments +=  argType + " " + argName + ", ";
       	}
       	
-      	arguments +=  argType + " " + argName + ", ";
+      	
     }
     // remove the last ", "
     arguments = arguments.substr(0, arguments.size() - 2);
@@ -366,7 +371,8 @@ arrayTypeHandler (FILE *additionalTypeHeader, FILE *additionalTypeFunc, TypeDecl
 	string tyName = typep -> getName();
 	string readFunctionName = getReadFunctionName(typep);
 	string sendFunctionName = getSendFunctionName(typep);
-	string arrayArg = buildArrayArgType(typep);
+	string arrayArgName = "arrayArg";
+	string arrayArg = buildArrayArgType(typep, arrayArgName);
 
 	string readArrayPrototype = "void " + readFunctionName + "(C150StreamSocket *socket, " + arrayArg + ")";
 	string sendArrayPrototype = "void " + sendFunctionName + "(C150StreamSocket *socket, " + arrayArg + ")";
@@ -444,10 +450,11 @@ buildReadFunction (string readFunctionName, string arg, string socket){
 	return readFunction;
 }
 
+// build -> int_10_20
 string
 buildArrayFunctionType (TypeDeclaration* typep) {
-	string tyName;
-	TypeDeclaration* temp;
+	string tyName = "";
+	TypeDeclaration* temp = typep;
 	while (temp -> isArray()) {
 		int bound = temp -> getArrayBound();
 		tyName += "_" + to_string(bound);
@@ -457,20 +464,21 @@ buildArrayFunctionType (TypeDeclaration* typep) {
 	return tyName;
 }
 
+// ex. build -> int arrayArg[10][20]
 string
-buildArrayArgType (TypeDeclaration* typep) {
+buildArrayArgType (TypeDeclaration* typep, string argName) {
 	string tyName = "";
-	TypeDeclaration* temp;
+	TypeDeclaration* temp = typep;
 	while (temp -> isArray()) {
 		int bound = temp -> getArrayBound();
 		tyName += "[" + to_string(bound) + "]";
 		temp = temp -> getArrayMemberType();
 	}
-	tyName = temp -> getName() + " arrayArg" + tyName;
+	tyName = temp -> getName() + " " + argName + tyName;
 	return tyName;
 }
 
-
+// build the function for send data
 string 
 getSendFunctionName (TypeDeclaration* typep) {
 	string sendFunctionName = "send";
@@ -486,6 +494,7 @@ getSendFunctionName (TypeDeclaration* typep) {
 	return sendFunctionName;
 }
 
+// build the function name for read data
 string 
 getReadFunctionName (TypeDeclaration* typep) {
 	string readFunctionName = "read";
@@ -501,6 +510,7 @@ getReadFunctionName (TypeDeclaration* typep) {
 	return readFunctionName;
 }
 
+// get file base name
 string 
 getFileBasename (const char *filename) {
 	string stringFilename(filename);
@@ -529,6 +539,7 @@ split(const string &s, char delim) {
     return elems;
 }
 
+// stub proxy helpfunction header
 string 
 fileheaders (string fileBasename) {
     string header = "";
@@ -547,6 +558,7 @@ fileheaders (string fileBasename) {
     return header;
 }
 
+// headers for header file
 string
 headerFileheaders () {
 	string header = "";

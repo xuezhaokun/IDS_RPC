@@ -9,8 +9,8 @@
 #include <arpa/inet.h>
 using namespace C150NETWORK;
 using namespace std;
-#include "structs.idl"
-#include "structs_additionalTypeHandler.h"
+#include "lotsofstuff.idl"
+#include "lotsofstuff_additionalTypeHandler.h"
 
 void sendStruct_MT(C150StreamSocket *socket, MT structData){
 	
@@ -124,6 +124,20 @@ void sendArray_int_10_100(C150StreamSocket *socket, int arrayArg[10][100]){
 
 }
 
+void readArray_int_15(C150StreamSocket *socket, int arrayArg[15]){
+	for(int i_0 = 0; i_0 < 15; i_0++){
+		arrayArg[i_0] = readintType(socket);
+	}
+
+}
+
+void sendArray_int_15(C150StreamSocket *socket, int arrayArg[15]){
+	for(int i_0 = 0; i_0 < 15; i_0++){
+		sendintType(socket, arrayArg[i_0]);
+	}
+
+}
+
 void readArray_int_24(C150StreamSocket *socket, int arrayArg[24]){
 	for(int i_0 = 0; i_0 < 24; i_0++){
 		arrayArg[i_0] = readintType(socket);
@@ -134,6 +148,24 @@ void readArray_int_24(C150StreamSocket *socket, int arrayArg[24]){
 void sendArray_int_24(C150StreamSocket *socket, int arrayArg[24]){
 	for(int i_0 = 0; i_0 < 24; i_0++){
 		sendintType(socket, arrayArg[i_0]);
+	}
+
+}
+
+void readArray_int_24_15(C150StreamSocket *socket, int arrayArg[24][15]){
+	for(int i_0 = 0; i_0 < 24; i_0++){
+		for(int i_1 = 0; i_1 < 15; i_1++){
+			arrayArg[i_0][i_1] = readintType(socket);
+		}
+	}
+
+}
+
+void sendArray_int_24_15(C150StreamSocket *socket, int arrayArg[24][15]){
+	for(int i_0 = 0; i_0 < 24; i_0++){
+		for(int i_1 = 0; i_1 < 15; i_1++){
+			sendintType(socket, arrayArg[i_0][i_1]);
+		}
 	}
 
 }
