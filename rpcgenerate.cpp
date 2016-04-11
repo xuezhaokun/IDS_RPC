@@ -117,9 +117,10 @@ main(int argc, char const *argv[])
 
 void
 generateRPCStub (FILE *stubFile, Declarations parseTree) {
-	std::map<std::string, FunctionDeclaration*>::iterator fiter;  
+	unsigned int argnum;
+  	std::map<std::string, FunctionDeclaration*>::iterator fiter;  
   	FunctionDeclaration *functionp;
-  	
+
   	for (fiter = parseTree.functions.begin(); fiter != parseTree.functions.end(); ++fiter) {
   		functionp = fiter -> second;
   		string functionName = functionp -> getName();
@@ -137,17 +138,53 @@ generateRPCStub (FILE *stubFile, Declarations parseTree) {
   		string sendToProxy = getSendFunctionName(functionp -> getReturnType()) + " " + "(RPCSTUBSOCKET" + sendToProxyArg + ");";
 		fprintf(stubFile, "\t%s\n}\n", sendToProxy.c_str());
   	}
+  	string badFunction = "void __badFunction(char *functionName){\n";
+  	badFunction += "\tchar doneBuffer[5] = \"BAD\";\n";
+  	badFunction += "\t RPCSTUBSOCKET->write(doneBuffer, strlen(doneBuffer)+1);\n}\n";
+  	fprintf(stubFile, "%s", badFunction.c_str());
 
   	string dispatchFunction = "void dispatchFunction() {\n";
   	dispatchFunction += "\tchar functionNameBuffer[50];\n";
   	dispatchFunction += "\tstring functionName = readFunctionName(RPCSTUBSOCKET, functionNameBuffer, sizeof(functionNameBuffer));\n";
   	dispatchFunction += "\tif (!RPCSTUBSOCKET-> eof()) {\n";
-  	
-  	// NEEDS TO DO
-
-  	dispatchFunction += "\t}\n";
-  	dispatchFunction += "}\n";
   	fprintf(stubFile, "%s", dispatchFunction.c_str());
+
+  	string ifStatement = "\t\tif";
+  	for (fiter = parseTree.functions.begin(); fiter != parseTree.functions.end(); ++fiter) {
+  		functionp = fiter -> second;
+  		string functionName = functionp -> getName();
+    	ArgumentVector& args = functionp -> getArgumentVector();
+    	string functionReturnType = functionp -> getReturnType() -> getName(); 
+		
+		string compareFunctionName = ifStatement + " (strcmp(functionName.c_str(), \"" + functionName + "\") == 0){\n";
+		fprintf(stubFile, "%s", compareFunctionName.c_str());
+
+    	for(argnum = 0; argnum < args.size(); argnum++) {
+      		Arg_or_Member_Declaration* argp = args[argnum];
+      		string argName = argp -> getName();
+      		string argType = argp -> getType() -> getName();
+      		string readFunctionName = getReadFunctionName(argp -> getType());
+      		string readFunction = "";
+      		if (argp -> getType() -> isArray()) {
+      			string arrayArg = buildArrayArgType(argp -> getType()) + " " + argName + ";\n\t\t";
+      			readFunction += arrayArg;
+      			readFunction += buildReadFunction(readFunctionName, argName, "RPCSTUBSOCKET");
+      		} else {
+      			readFunction += argType + " " + argName + " = " + buildReadFunction(readFunctionName, "RPCSTUBSOCKET");
+      		}
+      		fprintf(stubFile, "\t\t\t%s", readFunction.c_str());
+      		string functionCallArgs = getActualFunctionCallArgs (functionp);
+      		string functionCall = "\t\t__" + functionName + "(" + functionCallArgs + ");\n";
+      		ifStatement = "else if";
+      		fprintf(stubFile, "%s\t\t} ", functionCall.c_str());
+    	}
+
+  	}
+  	string badFunctionCall = " else {\n \t\t\t__badFunction(functionNameBuffer);\n\t\t}\n";
+  	fprintf(stubFile, "%s", badFunctionCall.c_str());
+  	string closedCurlyBrackets = "\t}\n";
+  	closedCurlyBrackets += "}\n";
+  	fprintf(stubFile, "%s", closedCurlyBrackets.c_str());
 }
 
 // For each proxy call, send function name first, 
