@@ -1,3 +1,15 @@
+// --------------------------------------------------------------
+//
+//                        basicTypeHandler.cpp
+//
+//        Author: Zhaokun Xue         
+//   
+//        This file offers helper functions for sending and reading 
+//        basic built types, string, int, float, void. And It also
+//        provides helper functions for sending and reading function's
+//        name
+// --------------------------------------------------------------
+
 #include "basicTypeHandler.h"
 #include "c150debug.h"
 #include "c150streamsocket.h"
@@ -9,11 +21,13 @@
 using namespace C150NETWORK;
 using namespace std;
 
+// helper function for sending string
 void sendstringType (C150StreamSocket *socket, string stringData) {
   int length = stringData.length();
   sendintType(socket, length);
   socket->write(stringData.c_str(), length);
 }
+// helper function for reading string
 string readstringType (C150StreamSocket *socket) {
   int length = readintType(socket);
   char readBuffer[length];
@@ -38,48 +52,63 @@ string readStringType (C150StreamSocket *socket) {
   return stringData;
 }*/
 
+// helper function for sending integer
 void sendintType (C150StreamSocket *socket, int intData) {
-	 uint32_t netIntData = htonl(intData);
-    socket->write((char*) &netIntData, sizeof(uint32_t));
+	/*uint32_t netIntData = htonl(intData);
+  socket->write((char*) &netIntData, sizeof(uint32_t));*/
+  char intBuffer[32];
+  sprintf(intBuffer, "%d", intData);
+  socket->write(intBuffer, 32);
 }
 
+// helper function for reading integer
 int readintType (C150StreamSocket *socket) {
-    uint32_t netIntData;
-    socket->read((char*) &netIntData, sizeof(uint32_t));
-    uint32_t hostIntData = ntohl(netIntData);
-    return hostIntData;
+  /*uint32_t netIntData;
+  socket->read((char*) &netIntData, sizeof(uint32_t));
+  uint32_t hostIntData = ntohl(netIntData);
+  return hostIntData;*/
+  char intBuffer[32];
+  socket->read(intBuffer, 32);
+  int intData = atoi(intBuffer);
+  return intData;
 }
 
+// helper function for sending float
 void sendfloatType (C150StreamSocket *socket, float floatData) {
-	char floatBuffer[20];
+	char floatBuffer[32];
 	sprintf(floatBuffer, "%f", floatData);
-	socket->write(floatBuffer, 20);
+	socket->write(floatBuffer, 32);
 }
 
+// helper function for reading float
 float readfloatType (C150StreamSocket *socket) {
-	char floatBuffer[20];
-	socket->read(floatBuffer, 20);
+	char floatBuffer[32];
+	socket->read(floatBuffer, 32);
 	float floatData = atof(floatBuffer);
 	return floatData;
 }
 
+// helper function for sending void
 void sendvoidType (C150StreamSocket *socket) {
   sendintType(socket, 0);
 }
 
+// helper function for reading void
 void readvoidType (C150StreamSocket *socket) {
   readintType(socket);
 }
 
+// helper function for sending function name
 void sendFunctionName (C150StreamSocket *socket, const char  *functionName) {
     socket->write(functionName, strlen(functionName) + 1);
 }
 
+// helper function for reading function name
 string readFunctionName(C150StreamSocket *socket, char *buffer, unsigned int bufSize) {
   	unsigned int i;
  	  char *bufp;    // next char to read
   	bool readnull;
-  	ssize_t readlen;             // amount of data read from socket
+  	ssize_t readlen; // amount of data read from socket
   
   	//
   	// Read a message from the stream

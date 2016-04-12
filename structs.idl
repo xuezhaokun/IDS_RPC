@@ -24,3 +24,8 @@ struct s {
 };
 
 struct MT {};
+
+float multiply(float x, float y);
+float divide(float x, float y);
+int add(int x, int y);
+int subtract(int x, int y);

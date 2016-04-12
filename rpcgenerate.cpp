@@ -1,3 +1,14 @@
+// --------------------------------------------------------------
+//
+//                        rpcgenerate.cpp
+//
+//        Author: Zhaokun Xue         
+//   
+//        This file builds the program for building proxy and stub
+//
+//
+// --------------------------------------------------------------
+
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -11,10 +22,13 @@
 #include "typedeclaration.h"
 using namespace std;
 
+// function prototypes
 void
 generateRPCStub (FILE *stubFile, Declarations parseTree);
 void
 generateRPCProxy (FILE *proxyFile, Declarations parseTree);
+void 
+generateStubDispatch (FILE *stubFile, Declarations parseTree);
 string 
 getStubFunctionPrototype (FunctionDeclaration *functionp);
 string
@@ -58,6 +72,12 @@ stubHeaders (string headers);
 string
 headerFileheaders ();
 
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                           main program
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
 int 
 main(int argc, char const *argv[])
 {
@@ -123,9 +143,18 @@ main(int argc, char const *argv[])
     return 0;
 }
 
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     generateRPCStub
+//
+//        Generate .stub.cpp program
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ 
+
 void
 generateRPCStub (FILE *stubFile, Declarations parseTree) {
-	unsigned int argnum;
   	std::map<std::string, FunctionDeclaration*>::iterator fiter;  
   	FunctionDeclaration *functionp;
 
@@ -157,6 +186,66 @@ generateRPCStub (FILE *stubFile, Declarations parseTree) {
   	dispatchFunction += "\tif (!RPCSTUBSOCKET-> eof()) {\n";
   	fprintf(stubFile, "%s", dispatchFunction.c_str());
 
+	generateStubDispatch (stubFile, parseTree);
+
+  	string badFunctionCall = " else {\n \t\t\t__badFunction(functionNameBuffer);\n\t\t}\n";
+  	fprintf(stubFile, "%s", badFunctionCall.c_str());
+  	string closedCurlyBrackets = "\t}\n";
+  	closedCurlyBrackets += "}\n";
+  	fprintf(stubFile, "%s", closedCurlyBrackets.c_str());
+}
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     generateRPCProxy
+//
+//        Generate .proxy.cpp program
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ 
+void
+generateRPCProxy (FILE *proxyFile, Declarations parseTree) {
+	unsigned int argnum;
+	std::map<std::string, FunctionDeclaration*>::iterator fiter;  
+  	FunctionDeclaration *functionp;
+
+  	for (fiter = parseTree.functions.begin(); fiter != parseTree.functions.end(); ++fiter) {
+
+    	functionp = fiter -> second;
+    	string functionName = functionp -> getName();
+    	ArgumentVector& args = functionp -> getArgumentVector();
+    	string functionReturnType = functionp -> getReturnType() -> getName(); 
+    	string functionPrototye = getProxyFunctionPrototype(functionp);
+    	fprintf(proxyFile, "%s{\n", functionPrototye.c_str());
+		// send function name first
+		string sendFunctionNameToSub = "sendFunctionName(RPCPROXYSOCKET, \"" + functionName + "\");";
+    	fprintf(proxyFile, "\t%s\n", sendFunctionNameToSub.c_str());
+
+    	for(argnum = 0; argnum < args.size(); argnum++) {
+      		Arg_or_Member_Declaration* argp = args[argnum];
+      		string argName = argp -> getName();
+      		string sendArgToSub = getSendFunctionName(argp -> getType()) + " " + "(RPCPROXYSOCKET, " + argName + ");";
+      		fprintf(proxyFile, "\t%s\n", sendArgToSub.c_str());
+    	}
+    	string returnResult = getReadFunctionName(functionp -> getReturnType()) + "(RPCPROXYSOCKET);";
+    	fprintf(proxyFile, "\treturn %s\n}\n", returnResult.c_str());
+  	} 
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     generateStubDispatch
+//
+//        Generate .stub.cpp program's dispatch() content
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+void 
+generateStubDispatch (FILE *stubFile, Declarations parseTree) {
+  	unsigned int argnum;
+  	std::map<std::string, FunctionDeclaration*>::iterator fiter;  
+  	FunctionDeclaration *functionp;
   	string ifStatement = "\t\tif";
   	for (fiter = parseTree.functions.begin(); fiter != parseTree.functions.end(); ++fiter) {
   		functionp = fiter -> second;
@@ -189,47 +278,19 @@ generateRPCStub (FILE *stubFile, Declarations parseTree) {
       	string functionCall = "\t\t__" + functionName + "(" + functionCallArgs + ");\n";
       	ifStatement = "else if";
       	fprintf(stubFile, "%s\t\t} ", functionCall.c_str());
-
   	}
-  	string badFunctionCall = " else {\n \t\t\t__badFunction(functionNameBuffer);\n\t\t}\n";
-  	fprintf(stubFile, "%s", badFunctionCall.c_str());
-  	string closedCurlyBrackets = "\t}\n";
-  	closedCurlyBrackets += "}\n";
-  	fprintf(stubFile, "%s", closedCurlyBrackets.c_str());
 }
 
-// For each proxy call, send function name first, 
-// then iterate all the arguments, and send corresponding type
-// Finally read result
-void
-generateRPCProxy (FILE *proxyFile, Declarations parseTree) {
-	unsigned int argnum;
-	std::map<std::string, FunctionDeclaration*>::iterator fiter;  
-  	FunctionDeclaration *functionp;
-
-  	for (fiter = parseTree.functions.begin(); fiter != parseTree.functions.end(); ++fiter) {
-
-    	functionp = fiter -> second;
-    	string functionName = functionp -> getName();
-    	ArgumentVector& args = functionp -> getArgumentVector();
-    	string functionReturnType = functionp -> getReturnType() -> getName(); 
-    	string functionPrototye = getProxyFunctionPrototype(functionp);
-    	fprintf(proxyFile, "%s{\n", functionPrototye.c_str());
-		// send function name first
-		string sendFunctionNameToSub = "sendFunctionName(RPCPROXYSOCKET, \"" + functionName + "\");";
-    	fprintf(proxyFile, "\t%s\n", sendFunctionNameToSub.c_str());
-
-    	for(argnum = 0; argnum < args.size(); argnum++) {
-      		Arg_or_Member_Declaration* argp = args[argnum];
-      		string argName = argp -> getName();
-      		string sendArgToSub = getSendFunctionName(argp -> getType()) + " " + "(RPCPROXYSOCKET, " + argName + ");";
-      		fprintf(proxyFile, "\t%s\n", sendArgToSub.c_str());
-    	}
-    	string returnResult = getReadFunctionName(functionp -> getReturnType()) + "(RPCPROXYSOCKET);";
-    	fprintf(proxyFile, "\treturn %s\n}\n", returnResult.c_str());
-  	} 
-}
-
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     getStubFunctionPrototype
+//
+//        Generate function prototype prefix with "__" which is 
+//		  used in stub file
+//		  e.g. return "void __func1(int x, struct y)"
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ 
 string 
 getStubFunctionPrototype (FunctionDeclaration *functionp) {
 	string functionPrototye = "";
@@ -241,6 +302,15 @@ getStubFunctionPrototype (FunctionDeclaration *functionp) {
 
 	return functionPrototye;
 }
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     getProxyFunctionPrototype
+//
+//        Generate function prototype used in proxy file
+//		  e.g. return "int func1(int x, struct y)"
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 string
 getProxyFunctionPrototype (FunctionDeclaration *functionp) {
@@ -254,6 +324,16 @@ getProxyFunctionPrototype (FunctionDeclaration *functionp) {
 
 	return functionPrototye;
 }
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     getActualFunctionCallArgs
+//
+//        Make actual fucntion call which does not have
+//		  function return's type, arguments' types
+//		  e.g. return "func1(x, y);"
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 string 
 getActualFunctionCallArgs (FunctionDeclaration *functionp) {
@@ -278,6 +358,16 @@ getActualFunctionCallArgs (FunctionDeclaration *functionp) {
     arguments = arguments.substr(0, arguments.size() - 2);
     return arguments;
 }
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     getFunctionArgs
+//
+//        Get all function's arguments which are used in 
+//        function prototypes 
+//		  e.g. return "int x, struct y"
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 string 
 getFunctionArgs (FunctionDeclaration *functionp) {
@@ -305,7 +395,16 @@ getFunctionArgs (FunctionDeclaration *functionp) {
     return arguments;
 }
 
-// generate additional helper functions for array and strcut type
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     generateAdditionalTypeFiles
+//
+//        Generate additional helper functions based on given IDL file.
+//		  These additional helper functions for handling 
+//        send/read structs and arrays defined in IDL file
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 void 
 generateAdditionalTypeFiles (FILE *additionalTypeHeader, FILE *additionalTypeFunc, Declarations parseTree) {
 	std::map<std::string, TypeDeclaration*>::iterator iter;
@@ -324,7 +423,16 @@ generateAdditionalTypeFiles (FILE *additionalTypeHeader, FILE *additionalTypeFun
     }
 }
 
-// handle struct
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     structTypeHandler
+//
+//        Build helper function for handling struct by 
+//        sending/reading each field separately in order
+//        
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 void
 structTypeHandler (FILE *additionalTypeHeader, FILE *additionalTypeFunc, TypeDeclaration* typep) {
 	unsigned memberNum;
@@ -372,7 +480,16 @@ structTypeHandler (FILE *additionalTypeHeader, FILE *additionalTypeFunc, TypeDec
 	fprintf(additionalTypeFunc, "%s\n", readFunction.c_str());
 }
 
-// handle array type
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     arrayTypeHandler
+//
+//        Build helper function for handling array by 
+//        sending/reading each element separately in order
+//        
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 void 
 arrayTypeHandler (FILE *additionalTypeHeader, FILE *additionalTypeFunc, TypeDeclaration* typep) {
 	
@@ -433,6 +550,16 @@ arrayTypeHandler (FILE *additionalTypeHeader, FILE *additionalTypeFunc, TypeDecl
 	fprintf(additionalTypeFunc, "%s}\n\n", sendFunction.c_str());
 }
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     buildSendFunction
+//
+//        Construct the "send" function
+//        e.g. sendstringType(C150StreamSocket *socket, string s);
+//			   sendStruct_rectangle(C150StreamSocket *socket, rectangle r);
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 string
 buildSendFunction(string sendFunctionName, string arg_or_member, string socket) {
 	string sendFunction = sendFunctionName + "(";
@@ -444,21 +571,47 @@ buildSendFunction(string sendFunctionName, string arg_or_member, string socket) 
 	return sendFunction;
 }
 
-// for non-array type data
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     buildReadFunction
+//
+//        Construct the "read" function which is for non-array type
+//        e.g. readstringType(C150StreamSocket *socket);
+//			   readStruct_rectangle(C150StreamSocket *socket);
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 string
 buildReadFunction (string readFunctionName, string socket){
 	string readFunction = readFunctionName + "(" + socket +");\n\t";
 	return readFunction;
 }
 
-// for arrays
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     buildReadFunction
+//
+//        Construct the "read" function which is for array type
+//        e.g. readArray_rectangle_200(C150StreamSocket *socket, rectangle arrayArg[200]);
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 string
 buildReadFunction (string readFunctionName, string arg, string socket){
 	string readFunction = readFunctionName + "(" + socket + ", " + arg +");\n\t";
 	return readFunction;
 }
 
-// build -> int_10_20
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     buildArrayFunctionType
+//
+//        Construct format for part of array type function name
+//		  e.g. return int_10_20
+//        e.g. array help function name: sendArray_int_10_20
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 string
 buildArrayFunctionType (TypeDeclaration* typep) {
 	string tyName = "";
@@ -472,7 +625,15 @@ buildArrayFunctionType (TypeDeclaration* typep) {
 	return tyName;
 }
 
-// ex. build -> int arrayArg[10][20]
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     buildArrayArgType
+//
+//        Construct format for array type argument
+//		  e.g. return int arrayArg[10][20]
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 string
 buildArrayArgType (TypeDeclaration* typep, string argName) {
 	string tyName = "";
@@ -486,7 +647,14 @@ buildArrayArgType (TypeDeclaration* typep, string argName) {
 	return tyName;
 }
 
-// build the function for send data
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     getSendFunctionName
+//
+//        Construct "send" function's name based on different type
+//		  e.g. return sendstringType/sendStruct_Person/sendArray_int_10
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 string 
 getSendFunctionName (TypeDeclaration* typep) {
 	string sendFunctionName = "send";
@@ -502,7 +670,14 @@ getSendFunctionName (TypeDeclaration* typep) {
 	return sendFunctionName;
 }
 
-// build the function name for read data
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     getReadFunctionName
+//
+//        Construct "read" function's name based on different type
+//		  e.g. return readstringType/readStruct_Person/readArray_int_10
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 string 
 getReadFunctionName (TypeDeclaration* typep) {
 	string readFunctionName = "read";
@@ -518,7 +693,14 @@ getReadFunctionName (TypeDeclaration* typep) {
 	return readFunctionName;
 }
 
-// get file base name
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     getFileBasename
+//
+//			Get the base name for the given IDL file       
+//			e.g. return structs for input structs.idl
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 string 
 getFileBasename (const char *filename) {
 	string stringFilename(filename);
@@ -530,7 +712,13 @@ getFileBasename (const char *filename) {
 	return tokens.at(0);
 }
 
-// REFERENCE from StackOverFlow
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     split
+//		helper function for splitting string
+//	    **REFERENCE from StackOverFlow**
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 vector<string> 
 &split(const string &s, char delim, vector<string> &elems) {
     stringstream ss(s);
@@ -547,7 +735,13 @@ split(const string &s, char delim) {
     return elems;
 }
 
-// stub proxy helpfunction header
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     fileheaders
+//		build include headers for files
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 string 
 fileheaders (string fileBasename) {
     string header = "";
@@ -565,17 +759,37 @@ fileheaders (string fileBasename) {
     return header;
 }
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     proxyHeaders
+//		append rpcproxyhelper.h to fileheaders
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 string 
 proxyHeaders (string headers) {
 	return headers.append("#include \"rpcproxyhelper.h\"\n");
 } 
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     stubHeaders
+//		append rpcstubhelper.h to fileheaders
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 string 
 stubHeaders (string headers) {
 	return headers.append("#include \"rpcstubhelper.h\"\n");
 } 
 
-// headers for header file
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     headerFileheaders
+//		build include headers for .h files
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 string
 headerFileheaders () {
 	string header = "";

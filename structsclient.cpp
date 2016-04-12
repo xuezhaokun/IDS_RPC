@@ -150,7 +150,34 @@ main(int argc, char *argv[]) {
        printf("Calling area\n");
        int result = area(r);                          // remote call (we hope!)
        printf("Returned from area. Result=%d\n",result);
+       // 
+       // Call (possibly remote) multiply
+       //
+       printf("Calling multiply(10.0,3.5)\n");
+       float f = multiply(10.0,3.5);                          // remote call (we hope!)
+       printf("Returned from multiply(10.0,3.5). Result=%f\n",f);
 
+       // 
+       // Call (possibly remote) divide
+       //
+       printf("Calling divide(10.0,3.5)\n");
+       f = divide(10.0,3.5);                          // remote call (we hope!)
+       printf("Returned from divide(10.0,3.5). Result=%f\n",f);
+
+
+       // 
+       // Call (possibly remote) add
+       //
+       printf("Calling add(10,2)\n");
+       int intResult = add(10,2);                          // remote call (we hope!)
+       printf("Returned from add(10,2). Result=%d\n",intResult);
+
+       // 
+       // Call (possibly remote) subtract
+       //
+       printf("Calling subtract(10,2)\n");
+       intResult = subtract(10,2);                          // remote call (we hope!)
+       printf("Returned from subtract(10,2). Result=%d\n",intResult);
      }
 
      //

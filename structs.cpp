@@ -31,3 +31,19 @@ Person findPerson(ThreePeople tp){
 int area(rectangle r){
 	return (r.x * r.y);
 }
+
+float multiply(float x, float y) {
+  return x*y;
+}
+
+float divide(float x, float y) {
+  return x/y;
+}
+
+int add(int x, int y) {
+  return x+y;
+}
+
+int subtract(int x, int y) {
+  return x-y;
+}
