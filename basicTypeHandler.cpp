@@ -21,13 +21,30 @@
 using namespace C150NETWORK;
 using namespace std;
 
-// helper function for sending string
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     sendstringType
+//
+//        helper function for sending string type data
+//        
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 void sendstringType (C150StreamSocket *socket, string stringData) {
   int length = stringData.length();
   sendintType(socket, length);
   socket->write(stringData.c_str(), length);
 }
-// helper function for reading string
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     readstringType
+//
+//        helper function for reading string type data
+//        
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 string readstringType (C150StreamSocket *socket) {
   int length = readintType(socket);
   char readBuffer[length];
@@ -38,21 +55,15 @@ string readstringType (C150StreamSocket *socket) {
   return stringData;
 }
 
-/*void sendStringType (C150StreamSocket *socket, string stringData) {
-  socket->write(stringData.c_str(), stringData.length() + 1);
-}
-string readStringType (C150StreamSocket *socket) {
-  char readBuffer[512];
-  ssize_t readlen; 
-  readlen = socket->read(readBuffer, 512);
-  readBuffer[readlen] = '\0';
-  string stringData(readBuffer);
-  cleanString(stringData);
-  cout << "read: " << stringData << endl;
-  return stringData;
-}*/
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     sendintType
+//
+//        helper function for sending integer
+//        
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-// helper function for sending integer
 void sendintType (C150StreamSocket *socket, int intData) {
 	/*uint32_t netIntData = htonl(intData);
   socket->write((char*) &netIntData, sizeof(uint32_t));*/
@@ -61,7 +72,15 @@ void sendintType (C150StreamSocket *socket, int intData) {
   socket->write(intBuffer, 32);
 }
 
-// helper function for reading integer
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     readintType
+//
+//        helper function for reading integer
+//        
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 int readintType (C150StreamSocket *socket) {
   /*uint32_t netIntData;
   socket->read((char*) &netIntData, sizeof(uint32_t));
@@ -73,14 +92,31 @@ int readintType (C150StreamSocket *socket) {
   return intData;
 }
 
-// helper function for sending float
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     sendfloatType
+//
+//        helper function for sending float
+//        
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 void sendfloatType (C150StreamSocket *socket, float floatData) {
 	char floatBuffer[32];
 	sprintf(floatBuffer, "%f", floatData);
 	socket->write(floatBuffer, 32);
 }
 
-// helper function for reading float
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     readfloatType
+//
+//        helper function for reading float
+//        
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 float readfloatType (C150StreamSocket *socket) {
 	char floatBuffer[32];
 	socket->read(floatBuffer, 32);
@@ -88,22 +124,56 @@ float readfloatType (C150StreamSocket *socket) {
 	return floatData;
 }
 
-// helper function for sending void
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     sendvoidType
+//
+//         helper function for sending void
+//        
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 void sendvoidType (C150StreamSocket *socket) {
   sendintType(socket, 0);
 }
 
-// helper function for reading void
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     readvoidType
+//
+//        helper function for reading void
+//        
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 void readvoidType (C150StreamSocket *socket) {
   readintType(socket);
 }
 
-// helper function for sending function name
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     sendFunctionName
+//
+//        helper function for sending function name
+//        
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 void sendFunctionName (C150StreamSocket *socket, const char  *functionName) {
     socket->write(functionName, strlen(functionName) + 1);
 }
 
-// helper function for reading function name
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//
+//                     readFunctionName
+//
+//        helper function for reading function name
+//        
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 string readFunctionName(C150StreamSocket *socket, char *buffer, unsigned int bufSize) {
   	unsigned int i;
  	  char *bufp;    // next char to read

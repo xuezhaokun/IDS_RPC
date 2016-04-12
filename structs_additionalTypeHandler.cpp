@@ -1,15 +1,14 @@
 #include "c150debug.h"
-#include "rpcproxyhelper.h"
-#include "basicTypeHandler.h"
 #include <fstream>
 #include <cstdio>
 #include <cstring>
 #include <string>
 #include <fstream>
 #include <arpa/inet.h>
-using namespace C150NETWORK;
 using namespace std;
+using namespace C150NETWORK;
 #include "structs.idl"
+#include "basicTypeHandler.h"
 #include "structs_additionalTypeHandler.h"
 
 void sendStruct_MT(C150StreamSocket *socket, MT structData){
@@ -124,20 +123,6 @@ void sendArray_int_10_100(C150StreamSocket *socket, int arrayArg[10][100]){
 
 }
 
-void readArray_int_24(C150StreamSocket *socket, int arrayArg[24]){
-	for(int i_0 = 0; i_0 < 24; i_0++){
-		arrayArg[i_0] = readintType(socket);
-	}
-
-}
-
-void sendArray_int_24(C150StreamSocket *socket, int arrayArg[24]){
-	for(int i_0 = 0; i_0 < 24; i_0++){
-		sendintType(socket, arrayArg[i_0]);
-	}
-
-}
-
 void readArray_int_4(C150StreamSocket *socket, int arrayArg[4]){
 	for(int i_0 = 0; i_0 < 4; i_0++){
 		arrayArg[i_0] = readintType(socket);
@@ -188,20 +173,6 @@ void sendArray_int_4_10_100(C150StreamSocket *socket, int arrayArg[4][10][100]){
 				sendintType(socket, arrayArg[i_0][i_1][i_2]);
 			}
 		}
-	}
-
-}
-
-void readArray_rectangle_200(C150StreamSocket *socket, rectangle arrayArg[200]){
-	for(int i_0 = 0; i_0 < 200; i_0++){
-		arrayArg[i_0] = readStruct_rectangle(socket);
-	}
-
-}
-
-void sendArray_rectangle_200(C150StreamSocket *socket, rectangle arrayArg[200]){
-	for(int i_0 = 0; i_0 < 200; i_0++){
-		sendStruct_rectangle(socket, arrayArg[i_0]);
 	}
 
 }

@@ -5,6 +5,10 @@
 //        Author: Zhaokun Xue         
 //   
 //        This file builds the program for building proxy and stub
+//        
+//        COMMAND LINE: 
+//              rpcgenerate idlfile1 [idlfile...]*
+//
 //
 //
 // --------------------------------------------------------------
