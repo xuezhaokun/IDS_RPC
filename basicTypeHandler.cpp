@@ -60,16 +60,13 @@ string readstringType (C150StreamSocket *socket) {
 //                     sendintType
 //
 //        helper function for sending integer
-//        
+//        **REFERENCE from StackOverFlow**
 //
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 void sendintType (C150StreamSocket *socket, int intData) {
-	/*uint32_t netIntData = htonl(intData);
-  socket->write((char*) &netIntData, sizeof(uint32_t));*/
-  char intBuffer[16];
-  sprintf(intBuffer, "%d", intData);
-  socket->write(intBuffer, 16);
+	uint32_t netIntData = htonl(intData);
+  socket->write((char*) &netIntData, sizeof(uint32_t));
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -77,19 +74,15 @@ void sendintType (C150StreamSocket *socket, int intData) {
 //                     readintType
 //
 //        helper function for reading integer
-//        
+//        **REFERENCE from StackOverFlow**
 //
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 int readintType (C150StreamSocket *socket) {
-  /*uint32_t netIntData;
+  uint32_t netIntData;
   socket->read((char*) &netIntData, sizeof(uint32_t));
   uint32_t hostIntData = ntohl(netIntData);
-  return hostIntData;*/
-  char intBuffer[16];
-  socket->read(intBuffer, 16);
-  int intData = atoi(intBuffer);
-  return intData;
+  return hostIntData;
 }
 
 

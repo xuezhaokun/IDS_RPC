@@ -25,7 +25,7 @@ struct s {
 
 
 struct sm {
-  int m1[1000];
+  int m1[10000];
 };
 
 

@@ -201,7 +201,7 @@ main(int argc, char *argv[]) {
        //
 
        sm s1_test;
-       for (int i = 0; i < 1000; i++){
+       for (int i = 0; i < 10000; i++){
           s1_test.m1[i] = i;
        }
        

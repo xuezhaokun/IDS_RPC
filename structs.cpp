@@ -54,7 +54,7 @@ rectangle searchRectangles(rectangle rects[4]) {
 
 int sumSm(sm stest) {
 	int sum = 0;
-	for (int i = 0; i < 1000; i++){
+	for (int i = 0; i < 10000; i++){
 		sum += stest.m1[i];
 	}
 	return sum;
