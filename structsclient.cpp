@@ -178,6 +178,50 @@ main(int argc, char *argv[]) {
        printf("Calling subtract(10,2)\n");
        intResult = subtract(10,2);                          // remote call (we hope!)
        printf("Returned from subtract(10,2). Result=%d\n",intResult);
+
+       //
+       // Call (possibly remote) searchRectangle 
+       //
+       rectangle r1, r2, r3, r4;
+       r1.x = 3;
+       r1.y = 5;
+       r2.x = 4;
+       r2.y = 6;
+       r3.x = 7;
+       r3.y = 8;
+       r4.x = 10;
+       r4.y = 12;
+       rectangle r_search [4] = { r1, r2, r3, r4 }; 
+
+       rectangle r_result = searchRectangles(r_search);;
+       printf("Returned from searchRectangle(r_search). Result.x=%d; Result.y=%d\n",r_result.x,r_result.y);
+
+       //
+       // Call (possibly remote) sumM1 
+       //
+
+       sm s1_test;
+       for (int i = 0; i < 1000; i++){
+          s1_test.m1[i] = i;
+       }
+       
+       int sum_m1 = sumSm(s1_test);
+       printf("Returned from sumM1(s1_test). Result=%d\n",sum_m1);
+
+
+       //
+       // Call (possibly remote) sumM1 
+       //
+
+       StructWithArrays persons;
+       persons.people[0] = p1;
+       persons.people[1] = p2;
+       persons.people[2] = p3;
+       persons.aNumber = 3;
+
+       int personAge = findSecondPersonAge(persons);
+       printf("Returned from findSecondPersonAge(s1_test). Result=%d\n",personAge);
+
      }
 
      //

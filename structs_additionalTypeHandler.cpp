@@ -37,14 +37,14 @@ Person readStruct_Person(C150StreamSocket *socket){
 
 void sendStruct_StructWithArrays(C150StreamSocket *socket, StructWithArrays structData){
 	sendintType(socket, structData.aNumber);
-	sendArray_Person_10(socket, structData.people);
+	sendArray_Person_3(socket, structData.people);
 	
 }
 
 StructWithArrays readStruct_StructWithArrays(C150StreamSocket *socket){
 	StructWithArrays result;
 	result.aNumber = readintType(socket);
-	readArray_Person_10(socket, result.people);
+	readArray_Person_3(socket, result.people);
 	return result;
 }
 
@@ -63,15 +63,15 @@ ThreePeople readStruct_ThreePeople(C150StreamSocket *socket){
 	return result;
 }
 
-void readArray_Person_10(C150StreamSocket *socket, Person arrayArg[10]){
-	for(int i_0 = 0; i_0 < 10; i_0++){
+void readArray_Person_3(C150StreamSocket *socket, Person arrayArg[3]){
+	for(int i_0 = 0; i_0 < 3; i_0++){
 		arrayArg[i_0] = readStruct_Person(socket);
 	}
 
 }
 
-void sendArray_Person_10(C150StreamSocket *socket, Person arrayArg[10]){
-	for(int i_0 = 0; i_0 < 10; i_0++){
+void sendArray_Person_3(C150StreamSocket *socket, Person arrayArg[3]){
+	for(int i_0 = 0; i_0 < 3; i_0++){
 		sendStruct_Person(socket, arrayArg[i_0]);
 	}
 
@@ -177,6 +177,20 @@ void sendArray_int_4_10_100(C150StreamSocket *socket, int arrayArg[4][10][100]){
 
 }
 
+void readArray_rectangle_4(C150StreamSocket *socket, rectangle arrayArg[4]){
+	for(int i_0 = 0; i_0 < 4; i_0++){
+		arrayArg[i_0] = readStruct_rectangle(socket);
+	}
+
+}
+
+void sendArray_rectangle_4(C150StreamSocket *socket, rectangle arrayArg[4]){
+	for(int i_0 = 0; i_0 < 4; i_0++){
+		sendStruct_rectangle(socket, arrayArg[i_0]);
+	}
+
+}
+
 void sendStruct_rectangle(C150StreamSocket *socket, rectangle structData){
 	sendintType(socket, structData.x);
 	sendintType(socket, structData.y);
@@ -202,6 +216,17 @@ s readStruct_s(C150StreamSocket *socket){
 	readArray_int_4(socket, result.m1);
 	readArray_int_4_10(socket, result.m2);
 	readArray_int_4_10_100(socket, result.m3);
+	return result;
+}
+
+void sendStruct_sm(C150StreamSocket *socket, sm structData){
+	sendArray_int_4(socket, structData.m1);
+	
+}
+
+sm readStruct_sm(C150StreamSocket *socket){
+	sm result;
+	readArray_int_4(socket, result.m1);
 	return result;
 }
 

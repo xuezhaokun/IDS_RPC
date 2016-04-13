@@ -28,12 +28,24 @@ void __findPerson(ThreePeople tp){
 	Person result = findPerson(tp);
 	sendStruct_Person (RPCSTUBSOCKET, result);
 }
+void __findSecondPersonAge(StructWithArrays persons){
+	int result = findSecondPersonAge(persons);
+	sendintType (RPCSTUBSOCKET, result);
+}
 void __multiply(float x, float y){
 	float result = multiply(x, y);
 	sendfloatType (RPCSTUBSOCKET, result);
 }
+void __searchRectangles(rectangle rects[4]){
+	rectangle result = searchRectangles(rects);
+	sendStruct_rectangle (RPCSTUBSOCKET, result);
+}
 void __subtract(int x, int y){
 	int result = subtract(x, y);
+	sendintType (RPCSTUBSOCKET, result);
+}
+void __sumSm(sm stest){
+	int result = sumSm(stest);
 	sendintType (RPCSTUBSOCKET, result);
 }
 void __badFunction(char *functionName){
@@ -58,14 +70,24 @@ void dispatchFunction() {
 		} else if (strcmp(functionName.c_str(), "findPerson") == 0){
 			ThreePeople tp = readStruct_ThreePeople(RPCSTUBSOCKET);
 			__findPerson(tp);
+		} else if (strcmp(functionName.c_str(), "findSecondPersonAge") == 0){
+			StructWithArrays persons = readStruct_StructWithArrays(RPCSTUBSOCKET);
+			__findSecondPersonAge(persons);
 		} else if (strcmp(functionName.c_str(), "multiply") == 0){
 			float x = readfloatType(RPCSTUBSOCKET);
 			float y = readfloatType(RPCSTUBSOCKET);
 			__multiply(x, y);
+		} else if (strcmp(functionName.c_str(), "searchRectangles") == 0){
+			rectangle rects[4];
+			readArray_rectangle_4(RPCSTUBSOCKET, rects);
+			__searchRectangles(rects);
 		} else if (strcmp(functionName.c_str(), "subtract") == 0){
 			int x = readintType(RPCSTUBSOCKET);
 			int y = readintType(RPCSTUBSOCKET);
 			__subtract(x, y);
+		} else if (strcmp(functionName.c_str(), "sumSm") == 0){
+			sm stest = readStruct_sm(RPCSTUBSOCKET);
+			__sumSm(stest);
 		}  else {
  			__badFunction(functionNameBuffer);
 		}

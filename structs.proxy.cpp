@@ -34,15 +34,30 @@ Person findPerson(ThreePeople tp){
 	sendStruct_ThreePeople (RPCPROXYSOCKET, tp);
 	return readStruct_Person(RPCPROXYSOCKET);
 }
+int findSecondPersonAge(StructWithArrays persons){
+	sendFunctionName(RPCPROXYSOCKET, "findSecondPersonAge");
+	sendStruct_StructWithArrays (RPCPROXYSOCKET, persons);
+	return readintType(RPCPROXYSOCKET);
+}
 float multiply(float x, float y){
 	sendFunctionName(RPCPROXYSOCKET, "multiply");
 	sendfloatType (RPCPROXYSOCKET, x);
 	sendfloatType (RPCPROXYSOCKET, y);
 	return readfloatType(RPCPROXYSOCKET);
 }
+rectangle searchRectangles(rectangle rects[4]){
+	sendFunctionName(RPCPROXYSOCKET, "searchRectangles");
+	sendArray_rectangle_4 (RPCPROXYSOCKET, rects);
+	return readStruct_rectangle(RPCPROXYSOCKET);
+}
 int subtract(int x, int y){
 	sendFunctionName(RPCPROXYSOCKET, "subtract");
 	sendintType (RPCPROXYSOCKET, x);
 	sendintType (RPCPROXYSOCKET, y);
+	return readintType(RPCPROXYSOCKET);
+}
+int sumSm(sm stest){
+	sendFunctionName(RPCPROXYSOCKET, "sumSm");
+	sendStruct_sm (RPCPROXYSOCKET, stest);
 	return readintType(RPCPROXYSOCKET);
 }

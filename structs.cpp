@@ -47,3 +47,20 @@ int add(int x, int y) {
 int subtract(int x, int y) {
   return x-y;
 }
+
+rectangle searchRectangles(rectangle rects[4]) {
+	return rects[2];
+}
+
+int sumSm(sm stest) {
+	int sum = 0;
+	for (int i = 0; i < 1000; i++){
+		sum += stest.m1[i];
+	}
+	return sum;
+}
+
+int findSecondPersonAge(StructWithArrays persons){
+	//Person p2 = persons.people[1];
+	return persons.people[1].age;
+}
