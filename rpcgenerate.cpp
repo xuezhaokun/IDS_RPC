@@ -108,36 +108,48 @@ main(int argc, char const *argv[])
 			throw C150Exception(ss.str());
 		}
 
+		// parse IDL file into parseTree
 		Declarations parseTree(idlFile);
 
+		// get IDL file basename
 		string fileBasename = getFileBasename(argv[argnum]);
 		
+		// create output filenames
+		// additional helper functions file for handling structs and arrays 
+		// which are used in the give IDL file
 		string headerFileName = fileBasename + "_additionalTypeHandler.h";
 		string functionFileName = fileBasename + "_additionalTypeHandler.cpp";
+		// proxy and stub filenames
 		string proxy = fileBasename + ".proxy.cpp";
 		string stub = fileBasename + ".stub.cpp";
 
+		// generate file headers
 		string functionFileHeader = fileheaders(fileBasename);
 		functionFileHeader = functionFileHeader + "#include \"" + headerFileName + "\"\n";
 		string proxyFileHeaders = proxyHeaders(functionFileHeader);
 		string stubFileHeaders = stubHeaders(functionFileHeader);
 		string headFileheaders = headerFileheaders();
 
+		// open files
 		FILE* additionalTypeHeader = fopen(headerFileName.c_str(), "w+");
 		FILE* additionalTypeFunc = fopen(functionFileName.c_str(), "w+");
 		FILE* proxyFile = fopen(proxy.c_str(), "w+");
 		FILE* stubFile = fopen(stub.c_str(), "w+");
 
+		// write file headers to corresponding files
 		fprintf(additionalTypeHeader, "%s\n", headFileheaders.c_str());
 		fprintf(additionalTypeFunc, "%s\n", functionFileHeader.c_str());
 		fprintf(proxyFile, "%s\n", proxyFileHeaders.c_str());
 		fprintf(stubFile, "%s\n", stubFileHeaders.c_str());
 
+		// generate additional function file, proxy file and stub file
 		generateAdditionalTypeFiles(additionalTypeHeader, additionalTypeFunc, parseTree);
 		generateRPCProxy(proxyFile, parseTree);
 		generateRPCStub(stubFile, parseTree);
 
 		fprintf(additionalTypeHeader, "%s\n", "#endif");
+
+		// close files
 		fclose(additionalTypeHeader);
 		fclose(additionalTypeFunc);
 		fclose(proxyFile);
@@ -153,43 +165,58 @@ main(int argc, char const *argv[])
 //                     generateRPCStub
 //
 //        Generate .stub.cpp program
+//        First, build the function calls for each function.
+//        Then, build the dispatchfunction to handle data sent
+//        from proxy
 //
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
  
-
 void
 generateRPCStub (FILE *stubFile, Declarations parseTree) {
   	std::map<std::string, FunctionDeclaration*>::iterator fiter;  
   	FunctionDeclaration *functionp;
 
+  	//
+  	//  Loop once for each function declaration
+  	//
   	for (fiter = parseTree.functions.begin(); fiter != parseTree.functions.end(); ++fiter) {
+  		// get actual function declaration structures
   		functionp = fiter -> second;
+  		// get function name
   		string functionName = functionp -> getName();
+    	// get function return type
     	string functionReturnType = functionp -> getReturnType() -> getName(); 
+  		// build function prototype which is prefixed with "__"
   		string functionPrototye = getStubFunctionPrototype(functionp);
+  		// write to stub file and start to build the call to actual functions
   		fprintf(stubFile, "%s{\n", functionPrototye.c_str());
   		string sendToProxyArg = "";
   		string functionCallArgs = getActualFunctionCallArgs (functionp);
+  		// if function return type is not void, build the return instance
   		if (strcmp(functionReturnType.c_str(), "void") != 0){
   			string functionCall = functionReturnType + " result = " + functionName + "(" + functionCallArgs + ")";
   			fprintf(stubFile, "\t%s;\n", functionCall.c_str());
   			sendToProxyArg = ", result";
   		}
-
+  		// send back the result to proxy
   		string sendToProxy = getSendFunctionName(functionp -> getReturnType()) + " " + "(RPCSTUBSOCKET" + sendToProxyArg + ");";
+		// write to stub file
 		fprintf(stubFile, "\t%s\n}\n", sendToProxy.c_str());
   	}
+  	// function call for bad function name
   	string badFunction = "void __badFunction(char *functionName){\n";
   	badFunction += "\tchar doneBuffer[5] = \"BAD\";\n";
-  	badFunction += "\t RPCSTUBSOCKET->write(doneBuffer, strlen(doneBuffer)+1);\n}\n";
+  	badFunction += "\tRPCSTUBSOCKET->write(doneBuffer, strlen(doneBuffer)+1);\n}\n";
   	fprintf(stubFile, "%s", badFunction.c_str());
 
+  	// build the content in dispatchFunction call
   	string dispatchFunction = "void dispatchFunction() {\n";
   	dispatchFunction += "\tchar functionNameBuffer[50];\n";
   	dispatchFunction += "\tstring functionName = readFunctionName(RPCSTUBSOCKET, functionNameBuffer, sizeof(functionNameBuffer));\n";
   	dispatchFunction += "\tif (!RPCSTUBSOCKET-> eof()) {\n";
   	fprintf(stubFile, "%s", dispatchFunction.c_str());
 
+  	// generate the content in dispatchfucntion for handling each function call
 	generateStubDispatch (stubFile, parseTree);
 
   	string badFunctionCall = " else {\n \t\t\t__badFunction(functionNameBuffer);\n\t\t}\n";
@@ -205,6 +232,10 @@ generateRPCStub (FILE *stubFile, Declarations parseTree) {
 //                     generateRPCProxy
 //
 //        Generate .proxy.cpp program
+// 		  For each function call, send function name first.
+//		  Then send the content of each argument
+//		  to stub one by one in order. Finally, read the return
+//        result from stub
 //
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
  
@@ -214,25 +245,40 @@ generateRPCProxy (FILE *proxyFile, Declarations parseTree) {
 	std::map<std::string, FunctionDeclaration*>::iterator fiter;  
   	FunctionDeclaration *functionp;
 
+  	//
+  	//  Loop once for each function declaration
+  	//
   	for (fiter = parseTree.functions.begin(); fiter != parseTree.functions.end(); ++fiter) {
-
+  		// get actual function declaration structures
     	functionp = fiter -> second;
+    	// get function name
     	string functionName = functionp -> getName();
+    	// get all arguments vector
     	ArgumentVector& args = functionp -> getArgumentVector();
+    	// get return type
     	string functionReturnType = functionp -> getReturnType() -> getName(); 
+    	// get function prototype used in proxy file
     	string functionPrototye = getProxyFunctionPrototype(functionp);
+    	// write to proxy file
     	fprintf(proxyFile, "%s{\n", functionPrototye.c_str());
 		// send function name first
 		string sendFunctionNameToSub = "sendFunctionName(RPCPROXYSOCKET, \"" + functionName + "\");";
     	fprintf(proxyFile, "\t%s\n", sendFunctionNameToSub.c_str());
 
+    	//
+    	// Loop once for each argument
+    	//
     	for(argnum = 0; argnum < args.size(); argnum++) {
       		Arg_or_Member_Declaration* argp = args[argnum];
+      		// get arg name
       		string argName = argp -> getName();
-      		string sendArgToSub = getSendFunctionName(argp -> getType()) + " " + "(RPCPROXYSOCKET, " + argName + ");";
-      		fprintf(proxyFile, "\t%s\n", sendArgToSub.c_str());
+      		// send arg to stub
+      		string sendArgToStub = getSendFunctionName(argp -> getType()) + " " + "(RPCPROXYSOCKET, " + argName + ");";
+      		fprintf(proxyFile, "\t%s\n", sendArgToStub.c_str());
     	}
+    	// read return result from stub
     	string returnResult = getReadFunctionName(functionp -> getReturnType()) + "(RPCPROXYSOCKET);";
+    	// write to proxy file
     	fprintf(proxyFile, "\treturn %s\n}\n", returnResult.c_str());
   	} 
 }
@@ -241,7 +287,7 @@ generateRPCProxy (FILE *proxyFile, Declarations parseTree) {
 //
 //                     generateStubDispatch
 //
-//        Generate .stub.cpp program's dispatch() content
+//        Generate .stub.cpp program's dispatchFunction() content
 //
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -250,22 +296,41 @@ generateStubDispatch (FILE *stubFile, Declarations parseTree) {
   	unsigned int argnum;
   	std::map<std::string, FunctionDeclaration*>::iterator fiter;  
   	FunctionDeclaration *functionp;
+  	// handle the if, else if switch 
   	string ifStatement = "\t\tif";
+
+  	//
+  	//  Loop once for each function declaration
+  	//
   	for (fiter = parseTree.functions.begin(); fiter != parseTree.functions.end(); ++fiter) {
+  		// get actual function declaration structures
   		functionp = fiter -> second;
+  		// get function name
   		string functionName = functionp -> getName();
+  		// get arguments vector
     	ArgumentVector& args = functionp -> getArgumentVector();
+    	// get function return type
     	string functionReturnType = functionp -> getReturnType() -> getName(); 
-		
+		// start the if statement switch
 		string compareFunctionName = ifStatement + " (strcmp(functionName.c_str(), \"" + functionName + "\") == 0){\n";
 		fprintf(stubFile, "%s", compareFunctionName.c_str());
+		// tabs format handler
 		string readFunctiontabs = "\t\t\t";
+
+    	// 
+    	// Loop once for each argument, handler each arg received from proxy
+    	//
     	for(argnum = 0; argnum < args.size(); argnum++) {
       		Arg_or_Member_Declaration* argp = args[argnum];
+      		// get arg name
       		string argName = argp -> getName();
+      		// get arg type
       		string argType = argp -> getType() -> getName();
+      		// get function name sent from proxy
       		string readFunctionName = getReadFunctionName(argp -> getType());
       		string readFunction = "";
+      		// if arg type is array, init an array instance.
+      		// pass the array instance to read function and pop its values
       		if (argp -> getType() -> isArray()) {
       			string arrayArg = buildArrayArgType(argp -> getType(), argName) + ";\n\t\t\t";
       			readFunction += arrayArg;
@@ -273,11 +338,13 @@ generateStubDispatch (FILE *stubFile, Declarations parseTree) {
       		} else {
       			readFunction += argType + " " + argName + " = " + buildReadFunction(readFunctionName, "RPCSTUBSOCKET");
       		}
+      		// build the read function
       		readFunction = readFunctiontabs + readFunction;
+      		// write to stub file
       		fprintf(stubFile, "%s", readFunction.c_str());
       		readFunctiontabs = "\t\t";
     	}
-
+    	// make function calls
     	string functionCallArgs = getActualFunctionCallArgs (functionp);
       	string functionCall = "\t\t__" + functionName + "(" + functionCallArgs + ");\n";
       	ifStatement = "else if";
@@ -345,11 +412,14 @@ getActualFunctionCallArgs (FunctionDeclaration *functionp) {
 	string arguments = "";
     ArgumentVector& args = functionp -> getArgumentVector();
 
+    //
+    // loop once for each argument
+    //
    	for(argnum = 0; argnum<args.size(); argnum++) {
       	Arg_or_Member_Declaration* argp = args[argnum];
       	string argName = argp -> getName();
       	string argType = "";
-      	
+      	// if arg type is array, build array arg
       	if (argp -> getType() -> isArray()) {
       		argType = buildArrayArgType(argp -> getType(), argName);
       	} else {
@@ -367,8 +437,8 @@ getActualFunctionCallArgs (FunctionDeclaration *functionp) {
 //
 //                     getFunctionArgs
 //
-//        Get all function's arguments which are used in 
-//        function prototypes 
+//        Get all arguments for the given function,
+//        which are used in building function prototypes 
 //		  e.g. return "int x, struct y"
 //
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -378,12 +448,15 @@ getFunctionArgs (FunctionDeclaration *functionp) {
 	unsigned int argnum;
 	string arguments = "";
     ArgumentVector& args = functionp -> getArgumentVector();
-
+    
+    //
+    // loop once for each argument
+    //
    	for(argnum = 0; argnum<args.size(); argnum++) {
       	Arg_or_Member_Declaration* argp = args[argnum];
       	string argName = argp -> getName();
       	string argType = "";
-      	
+      	// if arg type is array, build array arg
       	if (argp -> getType() -> isArray()) {
       		argType = buildArrayArgType(argp -> getType(), argName);
       		arguments +=  argType + ", ";
@@ -414,16 +487,20 @@ generateAdditionalTypeFiles (FILE *additionalTypeHeader, FILE *additionalTypeFun
 	std::map<std::string, TypeDeclaration*>::iterator iter;
 
     TypeDeclaration *typep;
-
+    
+    //
+    // loop once for each type declaration
+    //
     for (iter = parseTree.types.begin(); iter != parseTree.types.end(); ++iter) {
-        
+        // get the actual type structs
         typep = iter->second;
-        
+        // if type is struct, call struct handler
         if(typep->isStruct()) {
             structTypeHandler(additionalTypeHeader, additionalTypeFunc, typep);
-        } else if(typep->isArray()) {
+        } else if(typep->isArray()) { // else if is array, call array handler
             arrayTypeHandler(additionalTypeHeader, additionalTypeFunc, typep);
         }
+        // all other types should be built basic types which are handled in basicTypeHandler
     }
 }
 
@@ -440,35 +517,45 @@ generateAdditionalTypeFiles (FILE *additionalTypeHeader, FILE *additionalTypeFun
 void
 structTypeHandler (FILE *additionalTypeHeader, FILE *additionalTypeFunc, TypeDeclaration* typep) {
 	unsigned memberNum;
+	// get type name
 	string tyName = typep -> getName();
-	
+
+	// build read/send function name for the given struct
 	string readFunctionName = getReadFunctionName(typep);
 	string sendFunctionName = getSendFunctionName(typep);
 
+	// build read/send function prototypes
 	string readStructPrototype = tyName + " " + readFunctionName + "(C150StreamSocket *socket)";
 	string sendStructPrototype = "void " + sendFunctionName + "(C150StreamSocket *socket, " + tyName + " structData)";
+	
 	// write to handler header file
 	fprintf(additionalTypeHeader, "%s;\n", readStructPrototype.c_str());
 	fprintf(additionalTypeHeader, "%s;\n", sendStructPrototype.c_str());
+	
 	// write to handler function file
 	string readFunction = readStructPrototype + "{\n\t";
 	string sendFunction = sendStructPrototype + "{\n\t";
 	readFunction = readFunction + tyName + " result;\n\t";
 
 	vector<Arg_or_Member_Declaration *>& members = typep -> getStructMembers();
+	//
+	// loop once for each member in the struct
+	//
 	for(memberNum=0; memberNum < members.size();memberNum++) {
 		Arg_or_Member_Declaration* memp = members[memberNum];
 		string mempName = memp -> getName();
 		string mempType = memp -> getType() -> getName();
 
-		// send function
+		// build send function name for each member
 		sendFunctionName = getSendFunctionName(memp -> getType());
 		string sendParam = "structData." + mempName;
+		// build send function call
 		sendFunction += buildSendFunction(sendFunctionName, sendParam, "socket");
 
-		//read function
+		// build read name fucntion for each member
 		readFunctionName = getReadFunctionName(memp -> getType());
 		
+		// if type is array call buildReadFunction for array type
 		if (memp -> getType() -> isArray()){
 			string arg = "result." + mempName;
 			readFunction += buildReadFunction(readFunctionName, arg, "socket");
@@ -496,28 +583,37 @@ structTypeHandler (FILE *additionalTypeHeader, FILE *additionalTypeFunc, TypeDec
 
 void 
 arrayTypeHandler (FILE *additionalTypeHeader, FILE *additionalTypeFunc, TypeDeclaration* typep) {
-	
+	// get type name
 	string tyName = typep -> getName();
+	
+	// build read/send function names for array type
 	string readFunctionName = getReadFunctionName(typep);
 	string sendFunctionName = getSendFunctionName(typep);
+
+	// build the array arg e.g. arrayArg[2][3][4]
 	string arrayArgName = "arrayArg";
 	string arrayArg = buildArrayArgType(typep, arrayArgName);
 
+	// build read/send function call for array type
 	string readArrayPrototype = "void " + readFunctionName + "(C150StreamSocket *socket, " + arrayArg + ")";
 	string sendArrayPrototype = "void " + sendFunctionName + "(C150StreamSocket *socket, " + arrayArg + ")";
+	
 	// write to handler header file
 	fprintf(additionalTypeHeader, "%s;\n", readArrayPrototype.c_str());
 	fprintf(additionalTypeHeader, "%s;\n", sendArrayPrototype.c_str());
+	
 	// write to handler function file
 	string readFunction = readArrayPrototype + "{\n";
 	string sendFunction = sendArrayPrototype + "{\n";
 
+	// make a temp variable for iterate array
 	TypeDeclaration* temp = typep;
 	int loop_counter = 0;
 	string readItemIter = "";
 	string sendItemIter = "";
 	string tabs = "\t";
 	string closedCurlyBrackets = "";
+	// build the for loop for iterate the array element
 	while (temp -> isArray()) {
 		int bound = temp -> getArrayBound();
 		closedCurlyBrackets = tabs + "}\n" + closedCurlyBrackets;
@@ -538,9 +634,10 @@ arrayTypeHandler (FILE *additionalTypeHeader, FILE *additionalTypeFunc, TypeDecl
 	readItemIter = "arrayArg" + readItemIter;
 	sendItemIter = "arrayArg" + sendItemIter;
 
+	// build read/send functoin name for array's element
 	string readArrayElementName = getReadFunctionName(temp);
 	string sendArrayElementName = getSendFunctionName(temp);
-
+	// build the read/send function call for array's element
 	readFunction +=  tabs + readItemIter + " = " + buildReadFunction(readArrayElementName, "socket");
 	sendFunction +=  tabs + buildSendFunction(sendArrayElementName, sendItemIter, "socket");
 	
@@ -550,6 +647,7 @@ arrayTypeHandler (FILE *additionalTypeHeader, FILE *additionalTypeFunc, TypeDecl
 	readFunction = readFunction + closedCurlyBrackets + "\n";
 	sendFunction = sendFunction + closedCurlyBrackets + "\n";
 
+	// write to addtional types handler file
 	fprintf(additionalTypeFunc, "%s}\n\n", readFunction.c_str());
 	fprintf(additionalTypeFunc, "%s}\n\n", sendFunction.c_str());
 }

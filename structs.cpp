@@ -24,7 +24,6 @@ using namespace std;          // for C++ std library
 #include "structs.idl"
 
 Person findPerson(ThreePeople tp){
-	cout << "returning p1" << endl;
 	return tp.p1;
 }
 
