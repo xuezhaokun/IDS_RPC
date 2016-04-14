@@ -33,7 +33,7 @@ struct MT {};
 
 float multiply(float x, float y);
 float divide(float x, float y);
-int add(int x, int y);
+int add(int x, int y, int z);
 int subtract(int x, int y);
 rectangle searchRectangles(rectangle rects[4]);
 

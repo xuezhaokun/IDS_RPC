@@ -168,8 +168,8 @@ main(int argc, char *argv[]) {
        // 
        // Call (possibly remote) add
        //
-       printf("Calling add(10,2)\n");
-       int intResult = add(10,2);                          // remote call (we hope!)
+       printf("Calling add(10,2,20)\n");
+       int intResult = add(10,2,20);                          // remote call (we hope!)
        printf("Returned from add(10,2). Result=%d\n",intResult);
 
        // 
